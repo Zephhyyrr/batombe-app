@@ -2,6 +2,7 @@
 .gradle
 /local.properties
 /.idea
+/.kotlin/errors
 /.idea/caches
 /.idea/libraries
 /.idea/modules.xml
