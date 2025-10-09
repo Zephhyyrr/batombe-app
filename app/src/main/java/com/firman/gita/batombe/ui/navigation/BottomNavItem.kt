@@ -6,5 +6,6 @@ data class BottomNavItem(
     val route: String,
     val title: String,
     val icon: Painter? = null,
-    val isMainFeature: Boolean = false
+    val isMainFeature: Boolean = false,
+    val isEnabled: Boolean = true
 )

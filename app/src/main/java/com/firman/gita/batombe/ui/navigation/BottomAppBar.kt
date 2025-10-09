@@ -85,7 +85,6 @@ fun BottomAppBarWithFab(
                             onClick = {
                                 if (currentRoute != item.route) {
                                     navController.navigate(item.route) {
-                                        // --- PERBAIKAN DI SINI ---
                                         popUpTo(navController.graph.findStartDestination().id) {
                                             saveState = true
                                         }
@@ -115,7 +114,6 @@ fun BottomAppBarWithFab(
                     onClick = {
                         if (!isSelected) {
                             navController.navigate(item.route) {
-                                // --- PERBAIKAN DI SINI ---
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
@@ -177,7 +175,7 @@ fun BottomNavItemComponent(
         verticalArrangement = Arrangement.Center,
         modifier = modifier
             .fillMaxHeight()
-            .clickable { onClick() }
+            .clickable(enabled = item.isEnabled) { onClick() }
             .clip(RoundedCornerShape(50))
     ) {
         Box(

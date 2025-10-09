@@ -1,47 +1,61 @@
 package com.firman.gita.batombe.ui.pages
 
+import android.content.Intent
 import android.media.MediaPlayer
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.airbnb.lottie.compose.*
 import com.firman.gita.batombe.R
 import com.firman.gita.batombe.ui.components.HistoryDetailCard
 import com.firman.gita.batombe.ui.theme.*
-import com.firman.gita.batombe.ui.theme.batombePrimary
 import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
 import com.firman.gita.batombe.utils.MediaUrlUtils
 import com.firman.gita.batombe.utils.ResultState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistoryDetailScreen(
+    modifier: Modifier = Modifier,
     historyId: Int,
     onBackClick: () -> Unit,
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val historyDetailState by viewModel.historyDetailState.collectAsState()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
 
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
     var audioButton by remember { mutableStateOf(SSButtonState.IDLE) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var isSharing by remember { mutableStateOf(false) }
 
     LaunchedEffect(historyId) {
         viewModel.getHistoryById(historyId)
@@ -54,6 +68,7 @@ fun HistoryDetailScreen(
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = {
@@ -73,16 +88,73 @@ fun HistoryDetailScreen(
                             tint = whiteColor
                         )
                     }
+                },
+                actions = {
+                    val state = historyDetailState
+                    if (state is ResultState.Success && state.data != null) {
+                        val historyData = state.data
+                        IconButton(
+                            enabled = !isSharing,
+                            onClick = {
+                                coroutineScope.launch {
+                                    isSharing = true
+                                    try {
+                                        val sharedFile = withContext(Dispatchers.IO) {
+                                            val audioUrl = MediaUrlUtils.buildMediaUrl(historyData.fileAudio.orEmpty())
+                                            val tempFile = File(context.cacheDir, "shared_audio.mp3")
+                                            URL(audioUrl).openStream().use { input ->
+                                                FileOutputStream(tempFile).use { output ->
+                                                    input.copyTo(output)
+                                                }
+                                            }
+                                            tempFile
+                                        }
+
+                                        val authority = "${context.packageName}.provider"
+                                        val audioUri = FileProvider.getUriForFile(context, authority, sharedFile)
+
+                                        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                            type = "audio/mp3"
+                                            putExtra(Intent.EXTRA_STREAM, audioUri)
+                                            putExtra(Intent.EXTRA_TEXT, "Ini adalah Pantun Batombe dari saya:\n\n${historyData.pantunBatombe}")
+                                            putExtra(Intent.EXTRA_SUBJECT, "Sebuah Pantun Batombe")
+                                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                        }
+                                        context.startActivity(Intent.createChooser(shareIntent, "Bagikan audio via..."))
+                                    } catch (e: Exception) {
+                                        Log.e("HistoryDetailScreen", "Share failed", e)
+                                        snackbarHostState.showSnackbar("Gagal membagikan audio")
+                                    } finally {
+                                        isSharing = false
+                                    }
+                                }
+                            }
+                        ) {
+                            if (isSharing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = whiteColor,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Default.Share,
+                                    contentDescription = "Share",
+                                    tint = whiteColor
+                                )
+                            }
+                        }
+                    }
                 }
             )
         },
+        modifier = modifier,
         containerColor = batombeSecondary
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFFF5F5F5))
         ) {
             when (val state = historyDetailState) {
                 is ResultState.Loading, ResultState.Initial -> {
@@ -96,7 +168,6 @@ fun HistoryDetailScreen(
                             .align(Alignment.Center)
                     )
                 }
-
                 is ResultState.Success -> {
                     val historyData = state.data
                     if (historyData != null) {
@@ -110,7 +181,7 @@ fun HistoryDetailScreen(
                             item {
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = whiteColor),
+                                    colors = CardDefaults.cardColors(containerColor = batombeGray),
                                     elevation = CardDefaults.cardElevation(2.dp)
                                 ) {
                                     Column(
@@ -124,7 +195,6 @@ fun HistoryDetailScreen(
                                             color = textColor,
                                             modifier = Modifier.padding(bottom = 15.dp)
                                         )
-
                                         Box(
                                             modifier = Modifier.fillMaxWidth(),
                                             contentAlignment = Alignment.Center
@@ -142,17 +212,14 @@ fun HistoryDetailScreen(
                                                         onMediaPlayerChange = { mediaPlayer = it },
                                                         onPlayingStateChange = {
                                                             isPlaying = it
-                                                            audioButton =
-                                                                if (it) SSButtonState.SUCCESS else SSButtonState.IDLE
+                                                            audioButton = if (it) SSButtonState.SUCCESS else SSButtonState.IDLE
                                                         },
                                                         onLoadingChange = {
-                                                            audioButton =
-                                                                if (it) SSButtonState.LOADING else SSButtonState.IDLE
+                                                            audioButton = if (it) SSButtonState.LOADING else SSButtonState.IDLE
                                                         },
                                                         onErrorChange = {
                                                             errorMessage = it
-                                                            if (it != null) audioButton =
-                                                                SSButtonState.FAILURE
+                                                            if (it != null) audioButton = SSButtonState.FAILURE
                                                         }
                                                     )
                                                 },
@@ -172,11 +239,10 @@ fun HistoryDetailScreen(
                                                 }
                                             )
                                         }
-
                                         errorMessage?.let {
                                             Text(
                                                 text = it,
-                                                color = Color.Red,
+                                                color = MaterialTheme.colorScheme.error,
                                                 fontSize = 12.sp,
                                                 modifier = Modifier.padding(top = 8.dp)
                                             )
@@ -184,14 +250,16 @@ fun HistoryDetailScreen(
                                     }
                                 }
                             }
-
                             item {
                                 HistoryDetailCard(data = historyData)
                             }
                         }
+                    } else {
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                            Text("Detail histori tidak ditemukan.")
+                        }
                     }
                 }
-
                 is ResultState.Error -> {
                     Column(
                         modifier = Modifier
@@ -248,12 +316,13 @@ private fun handlePlayPause(
         val fullAudioUrl = MediaUrlUtils.buildMediaUrl(audioPath)
         val currentMediaPlayer = mediaPlayer ?: MediaPlayer()
 
-        if (currentMediaPlayer == mediaPlayer) { // Jika MediaPlayer sudah ada (di-pause)
+        if (currentMediaPlayer == mediaPlayer && !currentMediaPlayer.isPlaying) {
             currentMediaPlayer.start()
             onPlayingStateChange(true)
             onLoadingChange(false)
-        } else { // Jika MediaPlayer baru
+        } else {
             currentMediaPlayer.apply {
+                reset()
                 setDataSource(fullAudioUrl)
                 setOnPreparedListener {
                     onLoadingChange(false)

@@ -29,7 +29,6 @@ import com.firman.gita.batombe.ui.viewmodel.ArticleViewModel
 import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
 import com.firman.gita.batombe.ui.viewmodel.HomeViewModel
 import com.firman.gita.batombe.ui.viewmodel.ProfileViewModel
-import com.firman.gita.batombe.ui.viewmodel.SpeechViewModel
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
@@ -74,6 +73,7 @@ fun UrVoiceRootApp(
 
     val bottomNavItems = listOf(
         BottomNavItem(Screen.Home.route, "Home", painterResource(R.drawable.ic_home)),
+        BottomNavItem("none", "Post", painterResource(R.drawable.ic_post), isEnabled = false),
         BottomNavItem(
             Screen.GeneratePantunLogin.route,
             "Generate",
@@ -84,7 +84,6 @@ fun UrVoiceRootApp(
         BottomNavItem(Screen.Profile.route, "Profile", painterResource(R.drawable.ic_profile))
     )
 
-    val sharedSpeechViewModel: SpeechViewModel = hiltViewModel()
 
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
@@ -188,24 +187,6 @@ fun UrVoiceRootApp(
                     navController = navController,
                     pantunText = decodedPantun,
                     audioFileName = decodedAudioFileName
-                )
-            }
-            composable(Screen.SpeechToText.route) {
-                SpeechToTextScreen(
-                    viewModel = sharedSpeechViewModel,
-                    onBackClick = { navController.popBackStack() },
-                    onNavigateRecordScreen = {
-                        navController.navigate(Screen.Record.route) {
-                            popUpTo(Screen.SpeechToText.route) { inclusive = true }
-                        }
-                    },
-                    onNavigateAnalyzeScreen = { text, fileName ->
-                        val encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8.toString())
-                        val encodedAudio = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
-                        navController.navigate("analyze/$encodedText/$encodedAudio") {
-                            popUpTo(Screen.SpeechToText.route) { inclusive = true }
-                        }
-                    }
                 )
             }
             composable(

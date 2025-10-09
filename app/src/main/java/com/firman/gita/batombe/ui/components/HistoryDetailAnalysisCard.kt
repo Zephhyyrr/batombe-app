@@ -12,6 +12,7 @@ import com.firman.gita.batombe.R
 import com.firman.gita.batombe.data.remote.models.HistoryResponse
 import com.firman.gita.batombe.ui.theme.PoppinsRegular
 import com.firman.gita.batombe.ui.theme.PoppinsSemiBold
+import com.firman.gita.batombe.ui.theme.batombeGray
 import com.firman.gita.batombe.ui.theme.textColor
 import com.firman.gita.batombe.ui.theme.whiteColor
 
@@ -23,7 +24,7 @@ fun HistoryDetailCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = whiteColor),
+        colors = CardDefaults.cardColors(containerColor = batombeGray),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
