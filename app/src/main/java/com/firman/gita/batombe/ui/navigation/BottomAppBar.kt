@@ -22,7 +22,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -41,12 +40,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.firman.gita.batombe.ui.theme.PoppinsMedium
 import com.firman.gita.batombe.ui.theme.batombePrimary
 import com.firman.gita.batombe.ui.theme.batombeSecondary
-import com.firman.gita.batombe.ui.theme.primaryColor
 import com.firman.gita.batombe.ui.theme.textColor
-import com.firman.gita.batombe.ui.theme.whiteBackground
 
 @Composable
 fun BottomAppBarWithFab(
@@ -87,7 +85,10 @@ fun BottomAppBarWithFab(
                             onClick = {
                                 if (currentRoute != item.route) {
                                     navController.navigate(item.route) {
-                                        popUpTo(Screen.Home.route) { saveState = true }
+                                        // --- PERBAIKAN DI SINI ---
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
                                         launchSingleTop = true
                                         restoreState = true
                                     }
@@ -114,7 +115,10 @@ fun BottomAppBarWithFab(
                     onClick = {
                         if (!isSelected) {
                             navController.navigate(item.route) {
-                                popUpTo(Screen.Home.route) { saveState = true }
+                                // --- PERBAIKAN DI SINI ---
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }

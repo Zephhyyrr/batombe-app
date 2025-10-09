@@ -1,16 +1,14 @@
 package com.firman.gita.batombe.data.repository.history
 
 import com.firman.gita.batombe.data.remote.models.HistoryResponse
-import com.firman.gita.batombe.data.remote.request.HistoryRequest
 import com.firman.gita.batombe.utils.ResultState
 import kotlinx.coroutines.flow.Flow
+import java.io.File
 
 interface HistoryRepository {
     suspend fun saveHistory(
-        audioFileName: String,
-        originalParagraph: String,
-        correctedParagraph: String,
-        grammarAnalysis: List<HistoryRequest.GrammarAnalysis>
+        audioFile: File,
+        pantunBatombe: String
     ): Flow<ResultState<HistoryResponse.Data>>
 
     suspend fun getAllHistory(): Flow<ResultState<List<HistoryResponse.Data>>>

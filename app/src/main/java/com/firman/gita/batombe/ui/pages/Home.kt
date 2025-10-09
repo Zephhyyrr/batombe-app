@@ -50,19 +50,11 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val systemUiController = rememberSystemUiController()
-    val useDarkIcons = !isSystemInDarkTheme()
-
-    DisposableEffect(systemUiController, useDarkIcons) {
-        systemUiController.setSystemBarsColor(
-            color = Color.Transparent,
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = batombePrimary,
             darkIcons = false
         )
-        onDispose {
-            systemUiController.setSystemBarsColor(
-                color = Color.Transparent,
-                darkIcons = useDarkIcons
-            )
-        }
     }
 
     val userState by viewModel.userState.collectAsStateWithLifecycle()

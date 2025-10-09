@@ -69,7 +69,7 @@ fun SplashScreen(navController: NavController, viewModel: SplashViewModel = hilt
         }
 
         Text(
-            text = "UrVoice",
+            text = "GITA Batombe",
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp),

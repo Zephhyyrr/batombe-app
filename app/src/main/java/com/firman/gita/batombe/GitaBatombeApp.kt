@@ -74,11 +74,10 @@ fun UrVoiceRootApp(
 
     val bottomNavItems = listOf(
         BottomNavItem(Screen.Home.route, "Home", painterResource(R.drawable.ic_home)),
-//        BottomNavItem("article", "Article", painterResource(R.drawable.ic_articles)),
         BottomNavItem(
             Screen.GeneratePantunLogin.route,
             "Generate",
-            painterResource(R.drawable.ic_mic),
+            painterResource(R.drawable.ic_star),
             isMainFeature = true
         ),
         BottomNavItem(Screen.History.route, "History", painterResource(R.drawable.ic_history)),
@@ -185,7 +184,11 @@ fun UrVoiceRootApp(
                 val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
                 val encodedAudioFileName = backStackEntry.arguments?.getString("audioFileName") ?: ""
                 val decodedAudioFileName = URLDecoder.decode(encodedAudioFileName, StandardCharsets.UTF_8.name())
-                RecordResultScreen(pantunText = decodedPantun, audioFileName = decodedAudioFileName)
+                RecordResultScreen(
+                    navController = navController,
+                    pantunText = decodedPantun,
+                    audioFileName = decodedAudioFileName
+                )
             }
             composable(Screen.SpeechToText.route) {
                 SpeechToTextScreen(
@@ -214,21 +217,8 @@ fun UrVoiceRootApp(
             ) { backStackEntry ->
                 val encodedText = backStackEntry.arguments?.getString("text") ?: ""
                 val encodedAudio = backStackEntry.arguments?.getString("audioFileName") ?: ""
-                val text = URLDecoder.decode(encodedText, StandardCharsets.UTF_8.toString())
-                val audioFileName = URLDecoder.decode(encodedAudio, StandardCharsets.UTF_8.toString())
-                AnalyzeScreen(
-                    text = text,
-                    audioFileName = audioFileName,
-                    onBackClick = { navController.popBackStack() },
-                    onNavigateToHistory = {
-                        navController.navigate(Screen.History.route) {
-                            popUpTo(Screen.Home.route) { inclusive = false }
-                            launchSingleTop = true
-                        }
-                        navController.currentBackStackEntry?.savedStateHandle?.set("refreshHistory", true)
-                        navController.getBackStackEntry(Screen.Home.route).savedStateHandle["refreshHome"] = true
-                    }
-                )
+                URLDecoder.decode(encodedText, StandardCharsets.UTF_8.toString())
+                URLDecoder.decode(encodedAudio, StandardCharsets.UTF_8.toString())
             }
             composable(Screen.History.route) {
                 val viewModel: HistoryViewModel = hiltViewModel()
@@ -243,7 +233,10 @@ fun UrVoiceRootApp(
                 HistoryScreen(
                     viewModel = viewModel,
                     onHistoryItemClick = { historyData ->
-                        navController.navigate(Screen.HistoryDetail(historyData.id).createRoute())
+                        val historyId = historyData.id
+                        if (historyId != null) {
+                            navController.navigate("history_detail/$historyId")
+                        }
                     }
                 )
             }

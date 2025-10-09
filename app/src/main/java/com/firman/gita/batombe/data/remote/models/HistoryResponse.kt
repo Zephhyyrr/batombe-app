@@ -14,35 +14,24 @@ data class HistoryResponse(
 ) {
     data class Data(
         @SerializedName("id")
-        val id: Int,
+        val id: Int? = null,
 
-        @SerializedName("fileAudio")
+        @SerializedName ("fileAudio" )
         val fileAudio: String? = null,
 
-        @SerializedName("originalParagraph")
-        val originalParagraph: String? = null,
+        @SerializedName("pantunBatombe")
+        val pantunBatombe: String? = null,
 
-        @SerializedName("correctedParagraph")
-        val correctedParagraph: String? = null,
+        @SerializedName("userId")
+        val userId: Int? = null,
+
+        @SerializedName("isPublic")
+        val isPublic: Boolean? = null,
 
         @SerializedName("createdAt")
         val createdAt: String? = null,
 
         @SerializedName("updatedAt")
-        val updatedAt: String? = null,
-
-        @SerializedName("grammarAnalysis")
-        val grammarAnalysis: List<GrammarAnalysis>? = null
-    )
-
-    data class GrammarAnalysis(
-        @SerializedName("corrected")
-        val corrected: String? = null,
-
-        @SerializedName("original")
-        val original: String? = null,
-
-        @SerializedName("reason")
-        val reason: String? = null
+        val updatedAt: String? = null
     )
 }

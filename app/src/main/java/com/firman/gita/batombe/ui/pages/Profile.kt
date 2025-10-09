@@ -51,19 +51,11 @@ fun ProfileScreen(
     val context = LocalContext.current
 
     val systemUiController = rememberSystemUiController()
-    val useDarkIcons = !isSystemInDarkTheme()
-
-    DisposableEffect(systemUiController, useDarkIcons) {
-        systemUiController.setSystemBarsColor(
-            color = Color.Transparent,
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = batombePrimary,
             darkIcons = false
         )
-        onDispose {
-            systemUiController.setSystemBarsColor(
-                color = Color.Transparent,
-                darkIcons = useDarkIcons
-            )
-        }
     }
 
     Scaffold(

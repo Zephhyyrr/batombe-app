@@ -1,13 +1,14 @@
 package com.firman.gita.batombe.ui.pages
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -19,16 +20,17 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.firman.gita.batombe.R
 import com.firman.gita.batombe.data.remote.models.HistoryResponse
 import com.firman.gita.batombe.ui.components.HistoryCard
 import com.firman.gita.batombe.ui.theme.PoppinsSemiBold
-import com.firman.gita.batombe.ui.theme.primaryColor
+import com.firman.gita.batombe.ui.theme.batombePrimary
+import com.firman.gita.batombe.ui.theme.batombeSecondary
 import com.firman.gita.batombe.ui.theme.textColor
 import com.firman.gita.batombe.ui.theme.whiteColor
 import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
-import com.firman.gita.batombe.utils.FormatDateUtils
 import com.firman.gita.batombe.utils.ResultState
-import com.firman.gita.batombe.R
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,12 +39,18 @@ fun HistoryScreen(
     viewModel: HistoryViewModel = hiltViewModel(),
     onHistoryItemClick: (HistoryResponse.Data) -> Unit = {}
 ) {
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = batombePrimary,
+            darkIcons = false
+        )
+    }
+
     val historyListState by viewModel.historyListState.collectAsState()
 
-    LaunchedEffect(historyListState) {
-        if (historyListState is ResultState.Initial) {
-            viewModel.getAllHistory()
-        }
+    LaunchedEffect(Unit) {
+        viewModel.getAllHistory()
     }
 
     Scaffold(
@@ -57,19 +65,19 @@ fun HistoryScreen(
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = primaryColor
+                    containerColor = batombePrimary
                 )
             )
         },
-        modifier = modifier
+        modifier = modifier,
+        containerColor = batombeSecondary
     ) { innerPadding ->
-
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            when (historyListState) {
+            when (val state = historyListState) {
                 is ResultState.Initial, is ResultState.Loading -> {
                     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
                     LottieAnimation(
@@ -83,9 +91,7 @@ fun HistoryScreen(
                 }
 
                 is ResultState.Success -> {
-                    val historyList =
-                        (historyListState as ResultState.Success<List<HistoryResponse.Data>>).data
-
+                    val historyList = state.data
                     if (historyList.isEmpty()) {
                         Box(
                             modifier = Modifier
@@ -97,11 +103,14 @@ fun HistoryScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Center
                             ) {
+                                val composition by rememberLottieComposition(
+                                    LottieCompositionSpec.RawRes(
+                                        R.raw.nodata_animation
+                                    )
+                                )
                                 LottieAnimation(
                                     modifier = Modifier.size(400.dp),
-                                    composition = rememberLottieComposition(
-                                        LottieCompositionSpec.RawRes(R.raw.nodata_animation)
-                                    ).value,
+                                    composition = composition,
                                     iterations = LottieConstants.IterateForever,
                                     contentScale = ContentScale.Fit
                                 )
@@ -118,24 +127,20 @@ fun HistoryScreen(
                     } else {
                         LazyColumn(
                             contentPadding = PaddingValues(
-                                top = 8.dp,
-                                bottom = innerPadding.calculateBottomPadding() + 120.dp,
                                 start = 15.dp,
-                                end = 15.dp
+                                end = 15.dp,
+                                top = 16.dp,
+                                bottom = 120.dp
                             ),
                             verticalArrangement = Arrangement.spacedBy(16.dp),
                             modifier = Modifier.fillMaxSize()
-                        ){
+                        ) {
                             items(
                                 items = historyList,
-                                key = { it.id }
+                                key = { it.id ?: 0 }
                             ) { historyItem ->
-                                val (dayMonth, year) = FormatDateUtils.formatDate(historyItem.createdAt)
                                 HistoryCard(
-                                    audioFileName = historyItem.fileAudio.orEmpty(),
-                                    correctedParagraph = historyItem.correctedParagraph.orEmpty(),
-                                    dayMonth = dayMonth,
-                                    year = year,
+                                    historyItem = historyItem,
                                     onClick = { onHistoryItemClick(historyItem) }
                                 )
                             }
@@ -145,7 +150,9 @@ fun HistoryScreen(
 
                 is ResultState.Error -> {
                     Box(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 32.dp),
                         contentAlignment = Alignment.Center
                     ) {
                         Column(
@@ -160,17 +167,16 @@ fun HistoryScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = (historyListState as ResultState.Error).errorMessage,
+                                text = state.errorMessage,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(horizontal = 32.dp)
+                                textAlign = TextAlign.Center
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
                                 onClick = { viewModel.getAllHistory() },
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary
+                                    containerColor = batombePrimary
                                 )
                             ) {
                                 Text(text = stringResource(R.string.retry), color = whiteColor)

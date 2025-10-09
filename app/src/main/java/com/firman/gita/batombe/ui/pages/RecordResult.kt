@@ -17,39 +17,62 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.firman.gita.batombe.R
+import com.firman.gita.batombe.ui.navigation.Screen
 import com.firman.gita.batombe.ui.theme.PoppinsSemiBold
 import com.firman.gita.batombe.ui.theme.batombePrimary
 import com.firman.gita.batombe.ui.theme.batombeSecondary
+import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
+import com.firman.gita.batombe.utils.ResultState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
+import kotlinx.coroutines.delay
 import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordResultScreen(
-    navController: NavController = rememberNavController(),
+    navController: NavController,
     pantunText: String,
-    audioFileName: String
+    audioFileName: String,
+    viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val systemUiController = rememberSystemUiController()
     var buttonState by remember { mutableStateOf(SSButtonState.IDLE) }
     val context = LocalContext.current
-
     var isPlaying by remember { mutableStateOf(false) }
-
     val voicePlayer = remember { MediaPlayer() }
+    val snackbarHostState = remember { SnackbarHostState() }
+    val saveHistoryState by viewModel.saveHistoryState.collectAsState()
+
+    LaunchedEffect(saveHistoryState) {
+        when (val result = saveHistoryState) {
+            is ResultState.Loading -> buttonState = SSButtonState.LOADING
+            is ResultState.Success -> {
+                navController.navigate(Screen.History.route) {
+                    popUpTo(Screen.RecordResult.route) { inclusive = true }
+                }
+                viewModel.resetSaveState()
+            }
+            is ResultState.Error -> {
+                buttonState = SSButtonState.FAILURE
+                snackbarHostState.showSnackbar("Gagal: ${result.errorMessage}")
+                delay(2000)
+                buttonState = SSButtonState.IDLE
+                viewModel.resetSaveState()
+            }
+            is ResultState.Initial -> buttonState = SSButtonState.IDLE
+        }
+    }
 
     LaunchedEffect(audioFileName) {
         val audioFile = File(context.cacheDir, audioFileName)
@@ -58,38 +81,32 @@ fun RecordResultScreen(
                 voicePlayer.setDataSource(audioFile.absolutePath)
                 voicePlayer.prepare()
             } catch (e: Exception) {
-                Log.e("RecordResultScreen", "Error Voice Player: ${e.message}")
+                Log.e("RecordResultScreen", "Error: ${e.message}")
             }
         }
-        voicePlayer.setOnCompletionListener {
-            isPlaying = false
-        }
+        voicePlayer.setOnCompletionListener { isPlaying = false }
     }
 
     DisposableEffect(Unit) {
         onDispose {
             voicePlayer.release()
+            viewModel.resetSaveState()
         }
     }
 
     SideEffect {
-        systemUiController.setStatusBarColor(
-            color = batombePrimary,
-            darkIcons = false
-        )
+        systemUiController.setStatusBarColor(color = batombePrimary, darkIcons = false)
     }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = batombePrimary
+        containerColor = batombePrimary,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(
-                    start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
-                    end = paddingValues.calculateEndPadding(LocalLayoutDirection.current)
-                ),
+                .padding(paddingValues),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Spacer(modifier = Modifier.height(12.dp))
@@ -165,9 +182,7 @@ fun RecordResultScreen(
                                         val authority = "${context.packageName}.provider"
                                         val audioUri = FileProvider.getUriForFile(context, authority, audioFile)
                                         val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                            // PERBAIKAN DI SINI
-                                            type = "audio/mp3"
-
+                                            type = "audio/*"
                                             putExtra(Intent.EXTRA_STREAM, audioUri)
                                             putExtra(Intent.EXTRA_TEXT, pantunText)
                                             putExtra(Intent.EXTRA_SUBJECT, "Sebuah Pantun Batombe")
@@ -185,7 +200,7 @@ fun RecordResultScreen(
                                     if (isPlaying) {
                                         voicePlayer.pause()
                                     } else {
-                                        if (!voicePlayer.isPlaying && voicePlayer.currentPosition >= voicePlayer.duration - 100) {
+                                        if (!voicePlayer.isPlaying && voicePlayer.duration > 0 && voicePlayer.currentPosition >= voicePlayer.duration - 100) {
                                             voicePlayer.seekTo(0)
                                         }
                                         voicePlayer.start()
@@ -205,18 +220,29 @@ fun RecordResultScreen(
                             }
                         }
                         Spacer(modifier = Modifier.height(24.dp))
+
+                    }
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
                         SSJetPackComposeProgressButton(
                             type = SSButtonType.CIRCLE,
                             width = 400.dp,
                             height = 56.dp,
-                            buttonBorderColor = Color.Transparent,
-                            buttonBorderWidth = 0.dp,
                             buttonState = buttonState,
-                            onClick = {},
-                            cornerRadius = 16,
-                            assetColor = Color.White,
-                            successIconPainter = null,
-                            failureIconPainter = null,
+                            onClick = {
+                                if (buttonState == SSButtonState.IDLE) {
+                                    val audioFile = File(context.cacheDir, audioFileName)
+                                    if (audioFile.exists()) {
+                                        viewModel.saveHistory(audioFile, pantunText)
+                                    } else {
+                                        Log.e("RecordResultScreen", "File audio tidak ditemukan!")
+                                    }
+                                }
+                            },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = batombePrimary,
                                 contentColor = Color.White,
@@ -224,7 +250,8 @@ fun RecordResultScreen(
                                 disabledContentColor = Color.White
                             ),
                             text = "Simpan History",
-                            textModifier = Modifier,
+                            cornerRadius = 16,
+                            assetColor = Color.White,
                             fontSize = 16.sp,
                             fontFamily = PoppinsSemiBold
                         )
@@ -233,14 +260,4 @@ fun RecordResultScreen(
             }
         }
     }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun RecordResultScreenPreview() {
-    RecordResultScreen(
-        navController = rememberNavController(),
-        pantunText = "Nagari Alam Pauah Duo\nDuo jo Nagari Bukik Sundi\nSuduk mato nan elah manggilo\nAti tak amuah dipaliang lai e",
-        audioFileName = "preview.mp3"
-    )
 }

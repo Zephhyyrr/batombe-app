@@ -5,14 +5,12 @@ import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,14 +18,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.airbnb.lottie.compose.*
-import com.firman.gita.batombe.utils.MediaUrlUtils
-import com.firman.gita.batombe.ui.components.HistoryDetailAnalysisCard
-import com.firman.gita.batombe.ui.components.SectionCard
-import com.firman.gita.batombe.ui.theme.*
-import com.firman.gita.batombe.utils.ResultState
-import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
-import com.simform.ssjetpackcomposeprogressbuttonlibrary.*
 import com.firman.gita.batombe.R
+import com.firman.gita.batombe.ui.components.HistoryDetailCard
+import com.firman.gita.batombe.ui.theme.*
+import com.firman.gita.batombe.ui.theme.batombePrimary
+import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
+import com.firman.gita.batombe.utils.MediaUrlUtils
+import com.firman.gita.batombe.utils.ResultState
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
+import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +37,6 @@ fun HistoryDetailScreen(
     viewModel: HistoryViewModel = hiltViewModel()
 ) {
     val historyDetailState by viewModel.historyDetailState.collectAsState()
-    val context = LocalContext.current
 
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -65,7 +64,7 @@ fun HistoryDetailScreen(
                         color = whiteColor
                     )
                 },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = primaryColor),
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = batombePrimary),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -76,7 +75,8 @@ fun HistoryDetailScreen(
                     }
                 }
             )
-        }
+        },
+        containerColor = batombeSecondary
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -99,114 +99,94 @@ fun HistoryDetailScreen(
 
                 is ResultState.Success -> {
                     val historyData = state.data
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 15.dp, vertical = 30.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        item {
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = whiteColor),
-                                elevation = CardDefaults.cardElevation(4.dp)
-                            ) {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    horizontalAlignment = Alignment.Start
+                    if (historyData != null) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 15.dp),
+                            contentPadding = PaddingValues(vertical = 24.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            item {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = whiteColor),
+                                    elevation = CardDefaults.cardElevation(2.dp)
                                 ) {
-                                    Text(
-                                        text = stringResource(R.string.audio_recording),
-                                        fontSize = 14.sp,
-                                        fontFamily = PoppinsSemiBold,
-                                        color = textColor,
-                                        modifier = Modifier.padding(bottom = 15.dp)
-                                    )
-
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth(),
-                                        contentAlignment = Alignment.Center
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.Start
                                     ) {
-                                        SSJetPackComposeProgressButton(
-                                            type = SSButtonType.CIRCLE,
-                                            width = 323.dp,
-                                            height = 45.dp,
-                                            buttonBorderColor = primaryColor,
-                                            buttonBorderWidth = 2.dp,
-                                            buttonState = audioButton,
-                                            onClick = {
-                                                handlePlayPause(
-                                                    historyData.fileAudio ?: "",
-                                                    mediaPlayer,
-                                                    isPlaying,
-                                                    onMediaPlayerChange = { mediaPlayer = it },
-                                                    onPlayingStateChange = {
-                                                        isPlaying = it
-                                                        audioButton =
-                                                            if (it) SSButtonState.SUCCESS else SSButtonState.IDLE
-                                                    },
-                                                    onLoadingChange = {
-                                                        audioButton =
-                                                            if (it) SSButtonState.LOADING else SSButtonState.IDLE
-                                                    },
-                                                    onErrorChange = {
-                                                        errorMessage = it
-                                                        if (it != null) audioButton =
-                                                            SSButtonState.FAILURE
-                                                    }
-                                                )
-                                            },
-                                            cornerRadius = 100,
-                                            successIconPainter = null,
-                                            failureIconPainter = null,
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = primaryColor,
-                                                contentColor = whiteColor,
-                                                disabledContainerColor = primaryColor,
-                                            ),
-                                            assetColor = Color.White,
-                                            enabled = audioButton != SSButtonState.LOADING,
-                                            text = when (audioButton) {
-                                                SSButtonState.LOADING -> stringResource(R.string.loading_audio)
-                                                SSButtonState.SUCCESS -> stringResource(R.string.pause_audio)
-                                                SSButtonState.FAILURE -> stringResource(R.string.failed_play_audio)
-                                                else -> stringResource(R.string.play_audio)
-                                            }
-                                        )
-                                    }
-
-                                    errorMessage?.let {
                                         Text(
-                                            text = it,
-                                            color = Color.Red,
-                                            fontSize = 12.sp,
-                                            modifier = Modifier.padding(top = 8.dp)
+                                            text = stringResource(R.string.audio_recording),
+                                            fontSize = 14.sp,
+                                            fontFamily = PoppinsSemiBold,
+                                            color = textColor,
+                                            modifier = Modifier.padding(bottom = 15.dp)
                                         )
+
+                                        Box(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            SSJetPackComposeProgressButton(
+                                                type = SSButtonType.CIRCLE,
+                                                width = 323.dp,
+                                                height = 45.dp,
+                                                buttonState = audioButton,
+                                                onClick = {
+                                                    handlePlayPause(
+                                                        audioPath = historyData.fileAudio ?: "",
+                                                        mediaPlayer = mediaPlayer,
+                                                        isPlaying = isPlaying,
+                                                        onMediaPlayerChange = { mediaPlayer = it },
+                                                        onPlayingStateChange = {
+                                                            isPlaying = it
+                                                            audioButton =
+                                                                if (it) SSButtonState.SUCCESS else SSButtonState.IDLE
+                                                        },
+                                                        onLoadingChange = {
+                                                            audioButton =
+                                                                if (it) SSButtonState.LOADING else SSButtonState.IDLE
+                                                        },
+                                                        onErrorChange = {
+                                                            errorMessage = it
+                                                            if (it != null) audioButton =
+                                                                SSButtonState.FAILURE
+                                                        }
+                                                    )
+                                                },
+                                                cornerRadius = 100,
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = batombePrimary,
+                                                    contentColor = Color.White,
+                                                    disabledContainerColor = batombePrimary,
+                                                    disabledContentColor = Color.White
+                                                ),
+                                                assetColor = whiteColor,
+                                                text = when (audioButton) {
+                                                    SSButtonState.LOADING -> stringResource(R.string.loading_audio)
+                                                    SSButtonState.SUCCESS -> stringResource(R.string.pause_audio)
+                                                    SSButtonState.FAILURE -> stringResource(R.string.failed_play_audio)
+                                                    else -> stringResource(R.string.play_audio)
+                                                }
+                                            )
+                                        }
+
+                                        errorMessage?.let {
+                                            Text(
+                                                text = it,
+                                                color = Color.Red,
+                                                fontSize = 12.sp,
+                                                modifier = Modifier.padding(top = 8.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
 
-                        item {
-                            SectionCard(
-                                title = stringResource(R.string.original_paragraph_title),
-                                content = historyData.originalParagraph
-                                    ?: stringResource(R.string.no_content_available)
-                            )
-                        }
-
-                        item {
-                            SectionCard(
-                                title = stringResource(R.string.corrected_paragraph_title),
-                                content = historyData.correctedParagraph
-                                    ?: stringResource(R.string.no_correction_available)
-                            )
-                        }
-
-                        if (!historyData.grammarAnalysis.isNullOrEmpty()) {
-                            items(historyData.grammarAnalysis) { grammar ->
-                                HistoryDetailAnalysisCard(grammar = grammar)
+                            item {
+                                HistoryDetailCard(data = historyData)
                             }
                         }
                     }
@@ -241,7 +221,7 @@ fun HistoryDetailScreen(
     }
 }
 
-fun handlePlayPause(
+private fun handlePlayPause(
     audioPath: String,
     mediaPlayer: MediaPlayer?,
     isPlaying: Boolean,
@@ -257,37 +237,44 @@ fun handlePlayPause(
             return
         }
 
+        if (audioPath.isBlank()) {
+            onErrorChange("Path audio tidak valid.")
+            return
+        }
+
         onLoadingChange(true)
         onErrorChange(null)
 
         val fullAudioUrl = MediaUrlUtils.buildMediaUrl(audioPath)
+        val currentMediaPlayer = mediaPlayer ?: MediaPlayer()
 
-        if (mediaPlayer == null) {
-            val newMediaPlayer = MediaPlayer()
-            newMediaPlayer.setDataSource(fullAudioUrl)
-            newMediaPlayer.setOnPreparedListener {
-                onLoadingChange(false)
-                it.start()
-                onPlayingStateChange(true)
-            }
-            newMediaPlayer.setOnCompletionListener {
-                onPlayingStateChange(false)
-                it.release()
-                onMediaPlayerChange(null)
-            }
-            newMediaPlayer.setOnErrorListener { _, _, _ ->
-                onLoadingChange(false)
-                onErrorChange("Gagal memutar audio")
-                onPlayingStateChange(false)
-                onMediaPlayerChange(null)
-                true
-            }
-            newMediaPlayer.prepareAsync()
-            onMediaPlayerChange(newMediaPlayer)
-        } else {
-            mediaPlayer.start()
+        if (currentMediaPlayer == mediaPlayer) { // Jika MediaPlayer sudah ada (di-pause)
+            currentMediaPlayer.start()
             onPlayingStateChange(true)
             onLoadingChange(false)
+        } else { // Jika MediaPlayer baru
+            currentMediaPlayer.apply {
+                setDataSource(fullAudioUrl)
+                setOnPreparedListener {
+                    onLoadingChange(false)
+                    it.start()
+                    onPlayingStateChange(true)
+                }
+                setOnCompletionListener {
+                    onPlayingStateChange(false)
+                    it.release()
+                    onMediaPlayerChange(null)
+                }
+                setOnErrorListener { _, _, _ ->
+                    onLoadingChange(false)
+                    onErrorChange("Gagal memutar audio.")
+                    onPlayingStateChange(false)
+                    onMediaPlayerChange(null)
+                    true
+                }
+                prepareAsync()
+                onMediaPlayerChange(this)
+            }
         }
     } catch (e: Exception) {
         Log.e("AudioPlayer", "Playback error", e)

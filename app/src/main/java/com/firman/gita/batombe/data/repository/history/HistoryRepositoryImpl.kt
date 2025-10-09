@@ -2,13 +2,17 @@ package com.firman.gita.batombe.data.repository.history
 
 import com.firman.gita.batombe.data.local.datastore.AuthPreferences
 import com.firman.gita.batombe.data.remote.models.HistoryResponse
-import com.firman.gita.batombe.data.remote.request.HistoryRequest
 import com.firman.gita.batombe.data.remote.service.HistoryService
 import com.firman.gita.batombe.utils.ResultState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 class HistoryRepositoryImpl @Inject constructor(
@@ -17,23 +21,23 @@ class HistoryRepositoryImpl @Inject constructor(
 ) : HistoryRepository {
 
     override suspend fun saveHistory(
-        audioFileName: String,
-        originalParagraph: String,
-        correctedParagraph: String,
-        grammarAnalysis: List<HistoryRequest.GrammarAnalysis>
+        audioFile: File,
+        pantunBatombe: String
     ): Flow<ResultState<HistoryResponse.Data>> = flow {
         emit(ResultState.Loading)
 
         val token = authPreferences.authToken.first() ?: ""
-        val request = HistoryRequest(
-            audioFileName = audioFileName,
-            originalParagraph = originalParagraph,
-            correctedParagraph = correctedParagraph,
-            grammarAnalysis = grammarAnalysis
+
+        val pantunRequestBody = pantunBatombe.toRequestBody("text/plain".toMediaTypeOrNull())
+        val audioRequestBody = audioFile.asRequestBody("audio/mpeg".toMediaTypeOrNull())
+        val audioFilePart = MultipartBody.Part.createFormData(
+            "audioFile",
+            audioFile.name,
+            audioRequestBody
         )
 
-        val response = historyService.saveHistory("Bearer $token", request)
-        val data = response.data // langsung, karena ini objek bukan List
+        val response = historyService.saveHistory("Bearer $token", audioFilePart, pantunRequestBody)
+        val data = response.data
 
         if (response.success && data != null) {
             emit(ResultState.Success(data))

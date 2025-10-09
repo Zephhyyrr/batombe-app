@@ -1,6 +1,5 @@
 package com.firman.gita.batombe.ui.pages
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -53,16 +51,13 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
     var buttonState by remember { mutableStateOf(SSButtonState.IDLE) }
     val coroutineScope = rememberCoroutineScope()
-    val context = LocalContext.current
 
     val systemUiController = rememberSystemUiController()
     SideEffect {
@@ -75,10 +70,12 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = batombePrimary
-    ) {
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
         ) {
             Column(
                 modifier = Modifier
@@ -100,7 +97,6 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                 modifier = Modifier.fillMaxWidth(),
                 contentScale = ContentScale.FillWidth
             )
-
             Card(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -111,12 +107,11 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(vertical = 28.dp, horizontal = 15.dp)
+                    modifier = Modifier.padding(vertical = 28.dp)
                 ) {
                     Text(
                         text = "Output",
+                        modifier = Modifier.padding(horizontal = 15.dp),
                         fontSize = 20.sp,
                         fontFamily = PoppinsSemiBold,
                         color = Color.Black
@@ -126,6 +121,8 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
 
                     Card(
                         modifier = Modifier
+                            .padding(horizontal = 15.dp)
+                            .fillMaxWidth()
                             .height(250.dp),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
@@ -150,7 +147,7 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                         } else {
                             Box(modifier = Modifier.fillMaxSize()) {
                                 Text(
-                                    text = pantunText.replace("/n", "\n"),
+                                    text = pantunText.replace("\\n", "\n"),
                                     modifier = Modifier
                                         .padding(20.dp)
                                         .verticalScroll(rememberScrollState()),
@@ -165,43 +162,47 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    SSJetPackComposeProgressButton(
-                        type = SSButtonType.CIRCLE,
-                        width = 400.dp,
-                        height = 56.dp,
-                        buttonBorderColor = Color.Transparent,
-                        buttonBorderWidth = 0.dp,
-                        padding = it,
-                        buttonState = buttonState,
-                        onClick = {
-                            coroutineScope.launch {
-                                buttonState = SSButtonState.LOADING
-                                delay(2000)
-                                buttonState = SSButtonState.SUCCESS
-                                navController.graph.startDestinationRoute?.let { route ->
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 15.dp)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        SSJetPackComposeProgressButton(
+                            type = SSButtonType.CIRCLE,
+                            width = 400.dp,
+                            height = 56.dp,
+                            buttonBorderColor = Color.Transparent,
+                            buttonBorderWidth = 0.dp,
+                            buttonState = buttonState,
+                            onClick = {
+                                coroutineScope.launch {
+                                    buttonState = SSButtonState.LOADING
+                                    delay(2000)
+                                    buttonState = SSButtonState.SUCCESS
                                     navController.navigate(Screen.Login.route) {
-                                        popUpTo(route) {
+                                        popUpTo(navController.graph.startDestinationId) {
                                             inclusive = true
                                         }
                                     }
                                 }
-                            }
-                        },
-                        cornerRadius = 16,
-                        assetColor = Color.White,
-                        successIconPainter = null,
-                        failureIconPainter = null,
-                        colors = buttonColors(
-                            containerColor = batombePrimary,
-                            contentColor = Color.White,
-                            disabledContainerColor = batombePrimary,
-                            disabledContentColor = Color.White
-                        ),
-                        text = "Login untuk buat batombe anda sendiri",
-                        textModifier = Modifier,
-                        fontSize = 14.sp,
-                        fontFamily = PoppinsSemiBold
-                    )
+                            },
+                            cornerRadius = 16,
+                            assetColor = Color.White,
+                            successIconPainter = null,
+                            failureIconPainter = null,
+                            colors = buttonColors(
+                                containerColor = batombePrimary,
+                                contentColor = Color.White,
+                                disabledContainerColor = batombePrimary,
+                                disabledContentColor = Color.White
+                            ),
+                            text = "Login untuk buat batombe anda sendiri",
+                            textModifier = Modifier,
+                            fontSize = 14.sp,
+                            fontFamily = PoppinsSemiBold
+                        )
+                    }
                 }
             }
         }

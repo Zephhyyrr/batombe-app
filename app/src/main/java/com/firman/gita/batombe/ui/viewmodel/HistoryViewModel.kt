@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.firman.gita.batombe.data.remote.models.HistoryResponse
-import com.firman.gita.batombe.data.remote.request.HistoryRequest
 import com.firman.gita.batombe.data.repository.history.HistoryRepository
 import com.firman.gita.batombe.utils.ResultState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -12,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
@@ -38,34 +38,22 @@ class HistoryViewModel @Inject constructor(
     val historyDetailState: StateFlow<ResultState<HistoryResponse.Data>> =
         _historyDetailState.asStateFlow()
 
-    fun saveHistory(
-        audioFileName: String,
-        originalParagraph: String,
-        correctedParagraph: String,
-        grammarAnalysis: List<HistoryRequest.GrammarAnalysis>
-    ) {
+    fun saveHistory(audioFile: File, pantunBatombe: String) {
         viewModelScope.launch {
             Log.d(TAG, "Starting saveHistory...")
             _saveHistoryState.value = ResultState.Loading
 
-            historyRepository.saveHistory(
-                audioFileName = audioFileName,
-                originalParagraph = originalParagraph,
-                correctedParagraph = correctedParagraph,
-                grammarAnalysis = grammarAnalysis
-            ).collect { result ->
+            historyRepository.saveHistory(audioFile, pantunBatombe).collect { result ->
                 _saveHistoryState.value = result
                 when (result) {
                     is ResultState.Success -> Log.d(
                         TAG,
                         "History saved successfully: ${result.data}"
                     )
-
                     is ResultState.Error -> Log.e(
                         TAG,
                         "Error saving history: ${result.errorMessage}"
                     )
-
                     is ResultState.Loading -> Log.d(TAG, "Saving history in progress...")
                     else -> Log.d(TAG, "Other state: $result")
                 }
@@ -85,12 +73,10 @@ class HistoryViewModel @Inject constructor(
                         TAG,
                         "History list fetched, count: ${result.data.size}"
                     )
-
                     is ResultState.Error -> Log.e(
                         TAG,
                         "Error fetching history: ${result.errorMessage}"
                     )
-
                     is ResultState.Loading -> Log.d(TAG, "⏳ Loading history list...")
                     else -> {}
                 }
@@ -111,7 +97,6 @@ class HistoryViewModel @Inject constructor(
                         TAG,
                         "Error fetching history detail: ${result.errorMessage}"
                     )
-
                     is ResultState.Loading -> Log.d(TAG, "Loading history detail...")
                     else -> {}
                 }
