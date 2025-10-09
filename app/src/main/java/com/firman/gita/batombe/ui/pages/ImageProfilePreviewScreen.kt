@@ -1,6 +1,7 @@
 package com.firman.gita.batombe.ui.pages
 
 import android.net.Uri
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
@@ -8,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -27,6 +29,7 @@ import com.firman.gita.batombe.utils.ResultState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.*
 import kotlinx.coroutines.launch
 import com.firman.gita.batombe.R
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,6 +48,21 @@ fun ImageProfilePreviewScreen(
     var isProcessing by remember { mutableStateOf(false) }
 
     val uploadState by viewModel.uploadProfileImageState.collectAsState()
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = !isSystemInDarkTheme()
+
+    DisposableEffect(systemUiController, useDarkIcons) {
+        systemUiController.setSystemBarsColor(
+            color = Color.Transparent,
+            darkIcons = false
+        )
+        onDispose {
+            systemUiController.setSystemBarsColor(
+                color = Color.Transparent,
+                darkIcons = useDarkIcons
+            )
+        }
+    }
 
     LaunchedEffect(uploadState) {
         when (uploadState) {
@@ -94,7 +112,7 @@ fun ImageProfilePreviewScreen(
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = primaryColor
+                    containerColor = batombePrimary
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -106,7 +124,8 @@ fun ImageProfilePreviewScreen(
                     }
                 }
             )
-        }
+        },
+        containerColor = batombeSecondary,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -210,9 +229,9 @@ fun ImageProfilePreviewScreen(
                 successIconPainter = null,
                 failureIconPainter = null,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor,
+                    containerColor = batombePrimary,
                     contentColor = whiteColor,
-                    disabledContainerColor = primaryColor.copy(alpha = 0.6f)
+                    disabledContainerColor = batombePrimary.copy(alpha = 0.6f)
                 ),
                 text = when (uploadButtonState) {
                     SSButtonState.LOADING -> stringResource(R.string.uploading)

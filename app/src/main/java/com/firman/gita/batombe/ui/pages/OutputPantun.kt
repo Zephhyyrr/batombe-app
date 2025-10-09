@@ -21,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +49,7 @@ import com.firman.gita.batombe.ui.theme.PoppinsSemiBold
 import com.firman.gita.batombe.ui.theme.batombeGray
 import com.firman.gita.batombe.ui.theme.batombePrimary
 import com.firman.gita.batombe.ui.theme.batombeSecondary
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
@@ -61,6 +63,14 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
     var buttonState by remember { mutableStateOf(SSButtonState.IDLE) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val systemUiController = rememberSystemUiController()
+    SideEffect {
+        systemUiController.setStatusBarColor(
+            color = batombePrimary,
+            darkIcons = false
+        )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -103,7 +113,7 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(vertical = 28.dp)
+                        .padding(vertical = 28.dp, horizontal = 15.dp)
                 ) {
                     Text(
                         text = "Output",
@@ -161,6 +171,7 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                         height = 56.dp,
                         buttonBorderColor = Color.Transparent,
                         buttonBorderWidth = 0.dp,
+                        padding = it,
                         buttonState = buttonState,
                         onClick = {
                             coroutineScope.launch {

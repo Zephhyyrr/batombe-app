@@ -7,6 +7,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -44,6 +45,7 @@ import com.firman.gita.batombe.utils.ResultState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.*
 import kotlinx.coroutines.launch
 import com.firman.gita.batombe.R
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +68,8 @@ fun EditProfileScreen(
     val coroutineScope = rememberCoroutineScope()
     var showSuccessDialog by remember { mutableStateOf(false) }
     var showImagePermissionDialog by remember { mutableStateOf(false) }
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = !isSystemInDarkTheme()
 
     val galleryLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -87,6 +91,19 @@ fun EditProfileScreen(
             }
         }
     )
+
+    DisposableEffect(systemUiController, useDarkIcons) {
+        systemUiController.setSystemBarsColor(
+            color = Color.Transparent,
+            darkIcons = false
+        )
+        onDispose {
+            systemUiController.setSystemBarsColor(
+                color = Color.Transparent,
+                darkIcons = useDarkIcons
+            )
+        }
+    }
 
     rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent(),
@@ -120,7 +137,7 @@ fun EditProfileScreen(
                     )
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = primaryColor
+                    containerColor = batombePrimary
                 ),
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
@@ -133,7 +150,8 @@ fun EditProfileScreen(
                 },
             )
         },
-        modifier = modifier
+        modifier = modifier,
+        containerColor = batombeSecondary,
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -158,7 +176,7 @@ fun EditProfileScreen(
                         modifier = Modifier
                             .size(92.dp)
                             .clip(CircleShape)
-                            .border(width = 2.dp, color = primaryColor, shape = CircleShape)
+                            .border(width = 2.dp, color = batombePrimary, shape = CircleShape)
                             .clickable { galleryLauncher.launch("image/*") },
                         contentAlignment = Alignment.Center
                     ) {
@@ -181,7 +199,7 @@ fun EditProfileScreen(
                             .align(Alignment.BottomEnd)
                             .offset(x = (-4).dp, y = (-4).dp)
                             .clip(CircleShape)
-                            .background(primaryColor)
+                            .background(batombePrimary)
                             .clickable { galleryLauncher.launch("image/*") }
                             .zIndex(1f),
                         contentAlignment = Alignment.Center
@@ -359,13 +377,13 @@ fun EditProfileScreen(
                                         Icon(
                                             Icons.Filled.Close,
                                             contentDescription = stringResource(R.string.hide_password),
-                                            tint = primaryColor
+                                            tint = batombePrimary
                                         )
                                     } else {
                                         Icon(
                                             painter = painterResource(id = R.drawable.ic_eye_primary),
                                             contentDescription = stringResource(R.string.show_password),
-                                            tint = primaryColor
+                                            tint = batombePrimary
                                         )
                                     }
                                 }
@@ -431,9 +449,9 @@ fun EditProfileScreen(
                     successIconPainter = null,
                     failureIconPainter = null,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = primaryColor,
+                        containerColor = batombePrimary,
                         contentColor = whiteColor,
-                        disabledContainerColor = primaryColor
+                        disabledContainerColor = batombePrimary
                     ),
                     text = stringResource(R.string.save),
                     textModifier = Modifier,

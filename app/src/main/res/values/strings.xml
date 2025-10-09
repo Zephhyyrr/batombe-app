@@ -132,4 +132,11 @@
     <string name="sign_title">Let’s Boost Your English Speaking Confidence</string>
     <string name="sign_desc">Join now to practice your speaking skills and make English your strength!</string>
     <string name="link_article">Link Article</string>
+    <string name="Ayo">batombe_1</string>
+    <string name="batombe_desc_1">Mulailah petualanganmu dengan batombe yang mencerminkan siapa dirimu.</string>
+    <string name="batombe_title_1">Ayo generate batombe pribadi kamu sesuai emosi dan tema yang diinginkan!</string>
+    <string name="batombe_title_2">Selamat Datang di Aplikasi GITA Batombe</string>
+    <string name="batombe_title_3">Apa itu Batombe?</string>
+    <string name="batombe_desc_2">GITA Batombe adalah aplikasi berbasis generative AI untuk menghasilkan pantun batombe sesuai dengan emosi dan tema yang di inginkan</string>
+    <string name="batombe_desc_3">Batombe adalah salah satu kekayaan sastra lisan dari Nagari Abai, Solok Selatan, Sumatera Barat. Inti dari tradisi ini adalah pertunjukan berbalas pantun antara dua kelompok atau lebih.</string>
 </resources>

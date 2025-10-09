@@ -79,134 +79,130 @@ fun GeneratePantunScreen(
         }
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = whiteColor
-    ) { paddingValues ->
-        Column(
+    // Perubahan dimulai di sini
+    Column(
+        modifier = modifier // Menggunakan modifier dari parameter
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .background(Color.White)
+            .padding(horizontal = 15.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo_gita_batombe_1),
+            contentDescription = "Logo Pantun Batombe",
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .background(Color.White)
-                .padding(horizontal = 15.dp),
-            horizontalAlignment = Alignment.Start
+                .width(179.dp)
+                .height(64.dp),
+            contentScale = ContentScale.FillBounds
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.rumah_gadang_1),
+            contentDescription = "Rumah Gadang",
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(328.dp),
+            contentScale = ContentScale.FillBounds
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Generate Batombe",
+            fontSize = 24.sp,
+            fontFamily = PoppinsSemiBold,
+            color = Color(0xFF2C1810),
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        InputField(
+            label = "JUMLAH BARIS",
+            value = jumlahBaris,
+            onValueChange = { jumlahBaris = it },
+            placeholder = "4"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        InputField(
+            label = "TEMA",
+            value = tema,
+            onValueChange = { tema = it },
+            placeholder = "Nasihat Pernikahan"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        InputField(
+            label = "EMOSI",
+            value = emosi,
+            onValueChange = { emosi = it },
+            placeholder = "BAHAGIA"
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 32.dp) // Padding bawah ditambahkan di sini
+                .height(56.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_gita_batombe_1),
-                contentDescription = "Logo Pantun Batombe",
-                modifier = Modifier
-                    .width(179.dp)
-                    .height(64.dp),
-                contentScale = ContentScale.FillBounds
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.rumah_gadang_1),
-                contentDescription = "Rumah Gadang",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(328.dp),
-                contentScale = ContentScale.FillBounds
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Generate Batombe",
-                fontSize = 24.sp,
-                fontFamily = PoppinsSemiBold,
-                color = Color(0xFF2C1810),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            InputField(
-                label = "JUMLAH BARIS",
-                value = jumlahBaris,
-                onValueChange = { jumlahBaris = it },
-                placeholder = "4"
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            InputField(
-                label = "TEMA",
-                value = tema,
-                onValueChange = { tema = it },
-                placeholder = "Nasihat Pernikahan"
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            InputField(
-                label = "EMOSI",
-                value = emosi,
-                onValueChange = { emosi = it },
-                placeholder = "BAHAGIA"
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                SSJetPackComposeProgressButton(
-                    type = SSButtonType.CIRCLE,
-                    width = 400.dp,
-                    height = 56.dp,
-                    buttonBorderColor = Color.Transparent,
-                    buttonBorderWidth = 0.dp,
-                    buttonState = buttonState,
-                    onClick = {
-                        val jumlahBarisInt = jumlahBaris.toIntOrNull()
-                        if (jumlahBarisInt == null) {
-                            Toast.makeText(
-                                context,
-                                "Jumlah baris harus berupa angka.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else if (tema.isBlank() || emosi.isBlank()) {
-                            Toast.makeText(
-                                context,
-                                "Tema dan emosi tidak boleh kosong.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            coroutineScope.launch {
-                                buttonState = SSButtonState.LOADING
-                                viewModel.generatePantun(jumlahBarisInt, tema, emosi)
-                            }
+            SSJetPackComposeProgressButton(
+                type = SSButtonType.CIRCLE,
+                width = 400.dp,
+                height = 56.dp,
+                buttonBorderColor = Color.Transparent,
+                buttonBorderWidth = 0.dp,
+                buttonState = buttonState,
+                onClick = {
+                    val jumlahBarisInt = jumlahBaris.toIntOrNull()
+                    if (jumlahBarisInt == null) {
+                        Toast.makeText(
+                            context,
+                            "Jumlah baris harus berupa angka.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else if (tema.isBlank() || emosi.isBlank()) {
+                        Toast.makeText(
+                            context,
+                            "Tema dan emosi tidak boleh kosong.",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    } else {
+                        coroutineScope.launch {
+                            buttonState = SSButtonState.LOADING
+                            viewModel.generatePantun(jumlahBarisInt, tema, emosi)
                         }
-                    },
-                    cornerRadius = 16,
-                    assetColor = Color.White,
-                    successIconPainter = null,
-                    failureIconPainter = null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = batombePrimary,
-                        contentColor = Color.White,
-                        disabledContainerColor = batombePrimary,
-                        disabledContentColor = Color.White
-                    ),
-                    text = "GENERATE ✨",
-                    textModifier = Modifier,
-                    fontSize = 16.sp,
-                    fontFamily = PoppinsSemiBold
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
+                    }
+                },
+                cornerRadius = 16,
+                assetColor = Color.White,
+                successIconPainter = null,
+                failureIconPainter = null,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = batombePrimary,
+                    contentColor = Color.White,
+                    disabledContainerColor = batombePrimary,
+                    disabledContentColor = Color.White
+                ),
+                text = "GENERATE ✨",
+                textModifier = Modifier,
+                fontSize = 16.sp,
+                fontFamily = PoppinsSemiBold
+            )
         }
+        // Spacer terakhir dihilangkan
     }
 }
+
 
 @Composable
 private fun InputField(

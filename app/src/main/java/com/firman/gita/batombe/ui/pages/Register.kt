@@ -51,8 +51,8 @@ import com.firman.gita.batombe.ui.components.CustomAlertDialog
 import com.firman.gita.batombe.ui.navigation.Screen
 import com.firman.gita.batombe.ui.theme.PoppinsSemiBold
 import com.firman.gita.batombe.ui.theme.UrVoiceTheme
+import com.firman.gita.batombe.ui.theme.batombePrimary
 import com.firman.gita.batombe.ui.theme.greyTextColor
-import com.firman.gita.batombe.ui.theme.primaryColor
 import com.firman.gita.batombe.ui.theme.textColor
 import com.firman.gita.batombe.ui.theme.whiteColor
 import com.firman.gita.batombe.ui.viewmodel.RegisterViewModel
@@ -82,7 +82,7 @@ fun RegisterItem() {
             style = TextStyle(
                 fontFamily = PoppinsSemiBold,
                 fontSize = 26.sp,
-                color = primaryColor,
+                color = batombePrimary,
                 textAlign = TextAlign.Center
             )
         )
@@ -94,7 +94,7 @@ fun RegisterItem() {
             style = TextStyle(
                 fontFamily = PoppinsSemiBold,
                 fontSize = 16.sp,
-                color = primaryColor,
+                color = batombePrimary,
                 textAlign = TextAlign.Center
             )
         )
@@ -235,7 +235,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFE3F2FD),
                     unfocusedContainerColor = Color(0xFFE3F2FD),
-                    focusedBorderColor = primaryColor,
+                    focusedBorderColor = batombePrimary,
                     unfocusedBorderColor = Color.Transparent
                 ),
                 textStyle = TextStyle(
@@ -270,7 +270,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFE3F2FD),
                     unfocusedContainerColor = Color(0xFFE3F2FD),
-                    focusedBorderColor = primaryColor,
+                    focusedBorderColor = batombePrimary,
                     unfocusedBorderColor = Color.Transparent
                 ),
                 textStyle = TextStyle(
@@ -306,7 +306,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedContainerColor = Color(0xFFE3F2FD),
                     unfocusedContainerColor = Color(0xFFE3F2FD),
-                    focusedBorderColor = primaryColor,
+                    focusedBorderColor = batombePrimary,
                     unfocusedBorderColor = Color.Transparent
                 ),
                 textStyle = TextStyle(
@@ -318,14 +318,14 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                             Icon(
                                 imageVector = Icons.Filled.Close,
                                 contentDescription = stringResource(R.string.hide_password),
-                                tint = primaryColor,
+                                tint = batombePrimary,
                                 modifier = Modifier.size(24.dp)
                             )
                         } else {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_eye_primary),
                                 contentDescription = stringResource(R.string.show_password),
-                                tint = primaryColor,
+                                tint = batombePrimary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -355,9 +355,9 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 fontSize = 16.sp,
                 fontFamily = PoppinsSemiBold,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = primaryColor,
+                    containerColor = batombePrimary,
                     contentColor = whiteColor,
-                    disabledContainerColor = primaryColor.copy(alpha = 0.6f)
+                    disabledContainerColor = batombePrimary.copy(alpha = 0.6f)
                 ),
                 buttonState = registerButtonState,
                 onClick = {

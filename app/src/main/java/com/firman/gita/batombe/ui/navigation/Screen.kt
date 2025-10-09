@@ -45,7 +45,12 @@ sealed class Screen(val route: String) {
     object ImageProfilePreview : Screen("image_profile_preview")
 
     @Serializable
-    object Record : Screen("record")
+    object Record : Screen("record/{pantunText}") {
+        fun createRoute(pantunText: String): String {
+            val encodedPantun = URLEncoder.encode(pantunText, StandardCharsets.UTF_8.name())
+            return "record/$encodedPantun"
+        }
+    }
 
     @Serializable
     object SpeechToText : Screen("speech-to-text")
@@ -63,6 +68,15 @@ sealed class Screen(val route: String) {
         fun createRoute(pantunText: String): String {
             val encodedPantun = URLEncoder.encode(pantunText, StandardCharsets.UTF_8.name())
             return "output_pantun_login/$encodedPantun"
+        }
+    }
+
+    @Serializable
+    object RecordResult : Screen("record_result/{pantunText}/{audioFileName}") {
+        fun createRoute(pantunText: String, audioFileName: String): String {
+            val encodedPantun = URLEncoder.encode(pantunText, StandardCharsets.UTF_8.name())
+            val encodedAudioFileName = URLEncoder.encode(audioFileName, StandardCharsets.UTF_8.name())
+            return "record_result/$encodedPantun/$encodedAudioFileName"
         }
     }
 

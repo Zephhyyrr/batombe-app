@@ -1,16 +1,20 @@
 package com.firman.gita.batombe.ui.pages
 
 import android.Manifest
+import android.content.Context
 import android.media.MediaPlayer
-import android.util.Log
+import android.media.MediaRecorder
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,34 +30,36 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
 import com.airbnb.lottie.compose.*
-import com.firman.gita.batombe.ui.theme.*
-import com.firman.gita.batombe.ui.viewmodel.SpeechViewModel
-import com.firman.gita.batombe.utils.MediaUrlUtils
-import com.firman.gita.batombe.utils.ResultState
 import com.firman.gita.batombe.R
+import com.firman.gita.batombe.ui.navigation.Screen
+import com.firman.gita.batombe.ui.theme.*
+import java.io.File
+import java.io.IOException
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecordScreen(
     modifier: Modifier = Modifier,
-    viewModel: SpeechViewModel = hiltViewModel(),
-    onNavigateToSpeechToText: (String) -> Unit = {} // Changed to accept audioFileName parameter
+    navController: NavController,
+    pantunText: String,
 ) {
     val hapticFeedback = LocalHapticFeedback.current
     val context = LocalContext.current
 
-    val speechToTextState by viewModel.speechToTextState.collectAsStateWithLifecycle()
-    val isRecording by viewModel.isRecording.collectAsStateWithLifecycle()
-    val convertedText by viewModel.convertedText.collectAsStateWithLifecycle()
+    var isRecording by remember { mutableStateOf(false) }
+    var audioFile by remember { mutableStateOf<File?>(null) }
+    var recorder by remember { mutableStateOf<MediaRecorder?>(null) }
+    val backgroundMusicPlayer = remember { MediaPlayer() }
 
-    var audioUrl by remember { mutableStateOf<String?>(null) }
-    var audioFileName by remember { mutableStateOf<String?>(null) }
-    var isConfirmationAccepted by remember { mutableStateOf(false) }
-    var showConfirmationDialog by remember { mutableStateOf(false) }
-    var recordedText by remember { mutableStateOf("") }
+    DisposableEffect(Unit) {
+        onDispose {
+            recorder?.release()
+            backgroundMusicPlayer.release()
+        }
+    }
 
     var hasAudioPermission by remember {
         mutableStateOf(
@@ -64,37 +70,68 @@ fun RecordScreen(
         )
     }
 
-    var showPermissionRationale by remember { mutableStateOf(false) }
-
     val audioPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { isGranted ->
         hasAudioPermission = isGranted
-        if (!isGranted) {
-            showPermissionRationale = true
+    }
+
+    fun startRecording(context: Context) {
+        val fileName = "voice_${UUID.randomUUID()}.mp3"
+        val file = File(context.cacheDir, fileName)
+        audioFile = file
+
+        recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            MediaRecorder(context)
+        } else {
+            @Suppress("DEPRECATION")
+            MediaRecorder()
+        }.apply {
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile(file.absolutePath)
+            try {
+                prepare()
+                start()
+                isRecording = true
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+
+        try {
+            backgroundMusicPlayer.reset()
+            val descriptor = context.resources.openRawResourceFd(R.raw.musik_latar)
+            backgroundMusicPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
+            descriptor.close()
+            backgroundMusicPlayer.prepare()
+            backgroundMusicPlayer.start()
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    val stopAnimationComposition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.stop_animation)
-    )
+    fun stopRecording() {
+        recorder?.apply {
+            try {
+                stop()
+                release()
+            } catch (e: Exception) { e.printStackTrace() }
+        }
+        if (backgroundMusicPlayer.isPlaying) {
+            backgroundMusicPlayer.stop()
+        }
+        recorder = null
+        isRecording = false
 
-    val micAnimationProgress by animateLottieCompositionAsState(
-        composition = stopAnimationComposition,
-        iterations = LottieConstants.IterateForever,
-        isPlaying = isRecording,
-        speed = 1.0f,
-        restartOnPlay = true
-    )
-
-    LaunchedEffect(speechToTextState) {
-        if (speechToTextState is ResultState.Success && convertedText.isNotEmpty() && !isConfirmationAccepted) {
-            val data = (speechToTextState as ResultState.Success).data
-            recordedText = data.text ?: ""
-            audioUrl = MediaUrlUtils.buildMediaUrl(data.audioPath)
-            audioFileName = data.audioFileName
-
-            showConfirmationDialog = true
+        audioFile?.let { file ->
+            navController.navigate(
+                Screen.RecordResult.createRoute(
+                    pantunText = pantunText,
+                    audioFileName = file.name
+                )
+            )
         }
     }
 
@@ -104,55 +141,20 @@ fun RecordScreen(
                 audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
                 return@remember
             }
-
-            if (speechToTextState is ResultState.Loading) {
-                return@remember
-            }
-
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-
             if (isRecording) {
-                viewModel.stopRecordingAndTranscribe()
+                stopRecording()
             } else {
-                viewModel.startRecording()
+                startRecording(context)
             }
         }
-    }
-
-    if (showConfirmationDialog) {
-        AudioConfirmationDialog(
-            audioUrl = audioUrl,
-            onConfirm = {
-                showConfirmationDialog = false
-                isConfirmationAccepted = true
-                audioFileName?.let { fileName ->
-                    Log.d("RecordScreen", "Navigating with audioFileName: $fileName")
-                    onNavigateToSpeechToText(fileName)
-                } ?: run {
-                    Log.e("RecordScreen", "audioFileName is null, cannot navigate")
-                }
-            },
-            onDismiss = {
-                showConfirmationDialog = false
-                viewModel.resetState()
-            }
-        )
     }
 
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.record_title),
-                        fontSize = 14.sp,
-                        fontFamily = PoppinsSemiBold,
-                        color = whiteColor
-                    )
-                },
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = primaryColor
-                )
+                title = { Text("Rekam Batombe Anda", fontSize = 14.sp, fontFamily = PoppinsSemiBold, color = whiteColor) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = batombePrimary)
             )
         },
         modifier = modifier
@@ -168,15 +170,37 @@ fun RecordScreen(
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
+                Spacer(modifier = Modifier.height(24.dp))
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(150.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = batombeGray),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .verticalScroll(rememberScrollState())
+                    ) {
+                        Text(
+                            text = pantunText.replace("/n", "\n"),
+                            style = TextStyle(
+                                fontSize = 16.sp,
+                                color = batombePrimary,
+                                fontFamily = PoppinsMedium,
+                                textAlign = TextAlign.Center
+                            ),
+                            lineHeight = 24.sp
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.height(32.dp))
-
-                // Status text
                 Text(
                     text = when {
                         !hasAudioPermission -> stringResource(R.string.audio_permission)
                         isRecording -> stringResource(R.string.recording_in_progress)
-                        speechToTextState is ResultState.Loading -> stringResource(R.string.loading_transcription)
-                        speechToTextState is ResultState.Error -> stringResource(R.string.error_title)
                         else -> stringResource(R.string.record_instructions)
                     },
                     style = TextStyle(
@@ -184,48 +208,12 @@ fun RecordScreen(
                         color = when {
                             !hasAudioPermission -> MaterialTheme.colorScheme.error
                             isRecording -> Color.Red
-                            speechToTextState is ResultState.Loading -> MaterialTheme.colorScheme.primary
-                            speechToTextState is ResultState.Error -> MaterialTheme.colorScheme.error
                             else -> textColor
                         },
                         fontFamily = PoppinsMedium
                     ),
                     textAlign = TextAlign.Center
                 )
-
-                Spacer(modifier = Modifier.height(24.dp))
-                Spacer(modifier = Modifier.weight(1f))
-
-                if (convertedText.isNotEmpty() && !showConfirmationDialog) {
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        OutlinedButton(
-                            onClick = {
-                                viewModel.resetState()
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text("Reset", fontFamily = PoppinsMedium)
-                        }
-
-                        Spacer(modifier = Modifier.width(16.dp))
-
-                        Button(
-                            onClick = {
-                                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                            },
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Text(stringResource(R.string.save), fontFamily = PoppinsMedium)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(32.dp))
             }
 
             Box(
@@ -234,183 +222,31 @@ fun RecordScreen(
                     .size(280.dp),
                 contentAlignment = Alignment.Center
             ) {
-                when {
-                    isRecording && stopAnimationComposition != null -> {
-                        Box(
-                            modifier = Modifier
-                                .size(280.dp)
-                                .clip(CircleShape)
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = LocalIndication.current,
-                                    onClick = handleRecordingClick
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LottieAnimation(
-                                composition = stopAnimationComposition,
-                                progress = { micAnimationProgress },
-                                modifier = Modifier.size(350.dp)
-                            )
-                        }
-                    }
-
-                    speechToTextState is ResultState.Loading -> {
-                        val loadingAnimationComposition by rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.loading_animation)
-                        )
-                        val loadingAnimationProgress by animateLottieCompositionAsState(
-                            composition = loadingAnimationComposition,
-                            iterations = LottieConstants.IterateForever,
-                            isPlaying = true
-                        )
-
-                        LottieAnimation(
-                            composition = loadingAnimationComposition,
-                            progress = { loadingAnimationProgress },
-                            modifier = Modifier.size(150.dp)
-                        )
-                    }
-
-                    else -> {
-                        val micAnimationComposition by rememberLottieComposition(
-                            LottieCompositionSpec.RawRes(R.raw.mic_animation)
-                        )
-                        val micAnimationProgress by animateLottieCompositionAsState(
-                            composition = micAnimationComposition,
-                            iterations = LottieConstants.IterateForever,
-                            isPlaying = true
-                        )
-
-                        Box(
-                            modifier = Modifier
-                                .clickable(
-                                    interactionSource = remember { MutableInteractionSource() },
-                                    indication = LocalIndication.current,
-                                    onClick = handleRecordingClick
-                                ),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            LottieAnimation(
-                                composition = micAnimationComposition,
-                                progress = { micAnimationProgress },
-                                modifier = Modifier.size(350.dp)
-                            )
-                        }
-                    }
+                val composition by rememberLottieComposition(
+                    LottieCompositionSpec.RawRes(if (isRecording) R.raw.stop_animation else R.raw.mic_animation)
+                )
+                val progress by animateLottieCompositionAsState(
+                    composition,
+                    iterations = LottieConstants.IterateForever
+                )
+                Box(
+                    modifier = Modifier
+                        .size(280.dp)
+                        .clip(CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = LocalIndication.current,
+                            onClick = handleRecordingClick
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    LottieAnimation(
+                        composition,
+                        { progress },
+                        modifier = Modifier.size(350.dp)
+                    )
                 }
             }
         }
     }
-}
-
-@Composable
-private fun AudioConfirmationDialog(
-    audioUrl: String?,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
-) {
-    val context = LocalContext.current
-    var isPlaying by remember { mutableStateOf(false) }
-    val mediaPlayer = remember { MediaPlayer() }
-
-    LaunchedEffect(audioUrl) {
-        if (!audioUrl.isNullOrBlank()) {
-            try {
-                mediaPlayer.reset()
-                mediaPlayer.setDataSource(audioUrl)
-                mediaPlayer.prepareAsync()
-                mediaPlayer.setOnPreparedListener {
-                }
-                mediaPlayer.setOnCompletionListener {
-                    isPlaying = false
-                }
-            } catch (_: Exception) {
-                isPlaying = false
-            }
-        }
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            if (mediaPlayer.isPlaying) {
-                mediaPlayer.stop()
-            }
-            mediaPlayer.release()
-        }
-    }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(
-                text = stringResource(R.string.record_success_title),
-                style = TextStyle(
-                    fontSize = 16.sp,
-                    color = textColor,
-                    fontFamily = PoppinsMedium
-                )
-            )
-        },
-        text = {
-            Column {
-                Text(
-                    text = stringResource(R.string.transcription_confirmation_text),
-                    modifier = Modifier.padding(bottom = 8.dp),
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = textColor,
-                        fontFamily = PoppinsMedium
-                    )
-                )
-
-                if (!audioUrl.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = {
-                            if (isPlaying) {
-                                mediaPlayer.pause()
-                                isPlaying = false
-                            } else {
-                                mediaPlayer.start()
-                                isPlaying = true
-                            }
-                        }
-                    ) {
-                        Text(if (isPlaying) "⏸ Pause Audio" else "▶ Play Audio")
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            Button(onClick = onConfirm) {
-                Text(
-                    stringResource(R.string.yes),
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = whiteColor,
-                        fontFamily = PoppinsMedium
-                    )
-                )
-            }
-        },
-        dismissButton = {
-            OutlinedButton(
-                onClick = onDismiss,
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = primaryColor
-                ),
-                border = BorderStroke(1.dp, primaryColor)
-            ) {
-                Text(
-                    text = stringResource(R.string.retry_record_title),
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = primaryColor,
-                        fontFamily = PoppinsMedium
-                    )
-                )
-            }
-        }
-    )
 }

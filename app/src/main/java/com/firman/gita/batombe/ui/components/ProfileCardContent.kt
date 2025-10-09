@@ -36,6 +36,8 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.firman.gita.batombe.R
+import com.firman.gita.batombe.ui.theme.batombeGray
+import com.firman.gita.batombe.ui.theme.batombePrimary
 import com.firman.gita.batombe.ui.theme.primaryColor
 
 @Composable
@@ -49,8 +51,8 @@ fun ProfileCardContent(
         modifier = Modifier
             .fillMaxWidth()
             .height(148.dp),
-        colors = CardDefaults.cardColors(containerColor = Color.White),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        colors = CardDefaults.cardColors(batombeGray),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
         shape = RoundedCornerShape(12.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -65,7 +67,7 @@ fun ProfileCardContent(
                     modifier = Modifier
                         .size(92.dp)
                         .clip(CircleShape)
-                        .border(width = 2.dp, color = primaryColor, shape = CircleShape)
+                        .border(width = 2.dp, color = batombePrimary, shape = CircleShape)
                         .background(Color(0xFF87CEEB))
                 ) {
                     AsyncImage(

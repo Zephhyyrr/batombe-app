@@ -147,7 +147,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                 }
 
                 Handler(Looper.getMainLooper()).postDelayed({
-                    navController.navigate(Screen.GeneratePantunLogin.route) {
+                    navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
                         launchSingleTop = true
                     }

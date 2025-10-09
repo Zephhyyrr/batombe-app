@@ -42,6 +42,7 @@ import com.firman.gita.batombe.ui.viewmodel.HomeViewModel
 import com.firman.gita.batombe.utils.ResultState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.core.net.toUri
+import com.firman.gita.batombe.ui.theme.PoppinsRegular
 
 @Composable
 fun HomeScreen(
@@ -237,6 +238,15 @@ private fun ExampleVideoSection(state: ResultState<ExampleVideoResponse>) {
                             color = textColor,
                             fontSize = 18.sp,
                             fontFamily = PoppinsSemiBold
+                        ),
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                    Text(
+                        text = "Ayo tonton contoh video berikut ini untuk pedoman anda merekam batombe versi anda sendiri!",
+                        style = TextStyle(
+                            color = textColor,
+                            fontSize = 12.sp,
+                            fontFamily = PoppinsRegular
                         ),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )

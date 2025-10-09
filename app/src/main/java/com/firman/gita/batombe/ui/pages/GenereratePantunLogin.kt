@@ -58,10 +58,8 @@ fun GeneratePantunLoginScreen(
                 buttonState = SSButtonState.SUCCESS
                 val pantunResult = state.data.data
                 val pantunText = pantunResult?.pantun ?: "Pantun tidak ditemukan"
-                navController.navigate(Screen.OutputPantun.createRoute(pantunText)) {
-                    popUpTo(Screen.GeneratePantun.route) { inclusive = true }
-                }
-                buttonState = SSButtonState.IDLE
+                navController.navigate(Screen.OutputPantunLogin.createRoute(pantunText))
+                viewModel.resetState()
             }
             is ResultState.Error -> {
                 buttonState = SSButtonState.FAILURE
@@ -72,6 +70,8 @@ fun GeneratePantunLoginScreen(
                 ).show()
                 delay(1500)
                 buttonState = SSButtonState.IDLE
+
+                viewModel.resetState()
             }
             else -> {
                 // Idle atau Loading - tidak ada aksi

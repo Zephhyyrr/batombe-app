@@ -46,7 +46,7 @@ fun SplashScreen(navController: NavController, viewModel: SplashViewModel = hilt
                     }
                 }
                 else -> {
-                    navController.navigate("login") {
+                    navController.navigate("generate_pantun") {
                         popUpTo("splash") { inclusive = true }
                     }
                 }

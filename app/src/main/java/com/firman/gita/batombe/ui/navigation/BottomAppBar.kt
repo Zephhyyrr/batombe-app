@@ -43,6 +43,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.firman.gita.batombe.ui.theme.PoppinsMedium
 import com.firman.gita.batombe.ui.theme.batombePrimary
+import com.firman.gita.batombe.ui.theme.batombeSecondary
 import com.firman.gita.batombe.ui.theme.primaryColor
 import com.firman.gita.batombe.ui.theme.textColor
 import com.firman.gita.batombe.ui.theme.whiteBackground
@@ -123,7 +124,7 @@ fun BottomAppBarWithFab(
                         .size(70.dp)
                         .border(
                             width = 8.dp,
-                            color = whiteBackground,
+                            color = batombeSecondary,
                             shape = CircleShape
                         )
                         .clip(CircleShape),
@@ -146,7 +147,7 @@ fun BottomAppBarWithFab(
                 Text(
                     text = item.title,
                     fontSize = 10.sp,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = batombePrimary,
                     fontFamily = PoppinsMedium,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                     textAlign = TextAlign.Center,
@@ -164,8 +165,8 @@ fun BottomNavItemComponent(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val selectedBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-    val iconColor = if (isSelected) MaterialTheme.colorScheme.primary else textColor
+    val selectedBackground = batombePrimary.copy(alpha = 0.2f)
+    val iconColor = if (isSelected) batombePrimary else textColor
 
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -221,7 +222,7 @@ fun BottomAppBarWithFabPreview() {
     val items = listOf(
         BottomNavItem("home", "Home", painter),
         BottomNavItem("article", "Article", painter),
-        BottomNavItem("voice", "Voice", painter, isMainFeature = true),
+        BottomNavItem("generate", "Generate", painter, isMainFeature = true),
         BottomNavItem("history", "History", painter),
         BottomNavItem("profile", "Profile", painter)
     )

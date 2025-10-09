@@ -3,25 +3,14 @@ package com.firman.gita.batombe.ui.pages
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonDefaults.buttonColors
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -34,14 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 import com.firman.gita.batombe.R
-import com.firman.gita.batombe.ui.theme.PoppinsRegular
-import com.firman.gita.batombe.ui.theme.PoppinsSemiBold
-import com.firman.gita.batombe.ui.theme.UrVoiceTheme
-import com.firman.gita.batombe.ui.theme.primaryColor
-import com.firman.gita.batombe.ui.theme.textColor
-import com.firman.gita.batombe.ui.theme.whiteBackground
-import com.firman.gita.batombe.ui.theme.whiteColor
+import com.firman.gita.batombe.ui.theme.*
 import com.firman.gita.batombe.ui.viewmodel.OnBoardingViewModel
 import com.google.accompanist.pager.ExperimentalPagerApi
 import com.google.accompanist.pager.HorizontalPager
@@ -62,20 +46,23 @@ data class OnBoardModel(
 @Composable
 fun getOnBoardModel(): List<OnBoardModel> {
     return listOf(
+
         OnBoardModel(
-            titleRes = R.string.onboarding_title_1,
-            descriptionRes = R.string.onboarding_description_1,
-            imageRes = R.drawable.iv_onboarding_1
+            titleRes = R.string.batombe_title_2,
+            descriptionRes = R.string.batombe_desc_2,
+            imageRes = R.drawable.iv_batombe_ilus_2
         ),
+
         OnBoardModel(
-            titleRes = R.string.onboarding_title_2,
-            descriptionRes = R.string.onboarding_description_2,
-            imageRes = R.drawable.iv_onboarding_2
+            titleRes = R.string.batombe_title_3,
+            descriptionRes = R.string.batombe_desc_3,
+            imageRes = R.drawable.iv_batombe_ilus_3
         ),
+
         OnBoardModel(
-            titleRes = R.string.onboarding_title_3,
-            descriptionRes = R.string.onboarding_description_3,
-            imageRes = R.drawable.iv_onboarding_3
+            titleRes = R.string.batombe_title_1,
+            descriptionRes = R.string.batombe_desc_1,
+            imageRes = R.drawable.iv_batombe_ilus_1
         )
     )
 }
@@ -119,148 +106,70 @@ fun OnBoardItem(page: OnBoardModel) {
 
 @OptIn(ExperimentalPagerApi::class)
 @Composable
-fun ButtonRow(
+fun ButtonSection(
     pagerState: PagerState,
-    onBoardModel: List<OnBoardModel>,
-    onFinishOnboarding: () -> Unit = {}
+    onFinishOnboarding: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    var nextButtonState by remember { mutableStateOf(SSButtonState.IDLE) }
-    var backButtonState by remember { mutableStateOf(SSButtonState.IDLE) }
+    var buttonState by remember { mutableStateOf(SSButtonState.IDLE) }
+    val onBoardModels = getOnBoardModel()
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 15.dp, vertical = 24.dp)
+            .padding(horizontal = 15.dp, vertical = 24.dp),
+        contentAlignment = Alignment.Center
     ) {
-        if (pagerState.currentPage == onBoardModel.size - 1) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                SSJetPackComposeProgressButton(
-                    type = SSButtonType.CIRCLE,
-                    width = 380.dp,
-                    height = 50.dp,
-                    buttonState = nextButtonState,
-                    onClick = {
-                        coroutineScope.launch {
-                            nextButtonState = SSButtonState.LOADING
-                            delay(1000)
-                            nextButtonState = SSButtonState.SUCCESS
-                            onFinishOnboarding()
-                        }
-                    },
-                    cornerRadius = 100,
-                    assetColor = Color.White,
-                    successIconPainter = null,
-                    failureIconPainter = null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = primaryColor,
-                        contentColor = whiteColor,
-                        disabledContainerColor = primaryColor,
-                    ),
-                    text = stringResource(R.string.button_start_now),
-                    textModifier = Modifier,
-                    fontSize = 14.sp,
-                    fontFamily = PoppinsSemiBold
-                )
-            }
-        } else if (pagerState.currentPage > 0) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                SSJetPackComposeProgressButton(
-                    type = SSButtonType.CIRCLE,
-                    width = 157.dp,
-                    height = 50.dp,
-                    buttonBorderColor = primaryColor,
-                    buttonBorderWidth = 2.dp,
-                    buttonState = backButtonState,
-                    onClick = {
-                        coroutineScope.launch {
-                            backButtonState = SSButtonState.LOADING
-                            delay(1000)
-                            pagerState.animateScrollToPage(pagerState.currentPage - 1)
-                            backButtonState = SSButtonState.IDLE
-                        }
-                    },
-                    cornerRadius = 100,
-                    assetColor = primaryColor,
-                    successIconPainter = null,
-                    failureIconPainter = null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = whiteBackground,
-                        contentColor = primaryColor
-                    ),
-                    text = stringResource(R.string.button_back),
-                    textModifier = Modifier,
-                    fontSize = 14.sp,
-                    fontFamily = PoppinsSemiBold
-                )
-
-                SSJetPackComposeProgressButton(
-                    type = SSButtonType.CIRCLE,
-                    width = 157.dp,
-                    height = 50.dp,
-                    buttonState = nextButtonState,
-                    onClick = {
-                        coroutineScope.launch {
-                            nextButtonState = SSButtonState.LOADING
-                            delay(1000)
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            nextButtonState = SSButtonState.IDLE
-                        }
-                    },
-                    cornerRadius = 100,
-                    assetColor = whiteColor,
-                    successIconPainter = null,
-                    failureIconPainter = null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = primaryColor,
-                        contentColor = whiteColor,
-                        disabledContainerColor = primaryColor,
-                    ),
-                    text = stringResource(R.string.button_next),
-                    textModifier = Modifier,
-                    fontSize = 14.sp,
-                    fontFamily = PoppinsSemiBold
-                )
-            }
+        if (pagerState.currentPage == onBoardModels.size - 1) {
+            SSJetPackComposeProgressButton(
+                type = SSButtonType.CIRCLE,
+                width = 380.dp,
+                height = 50.dp,
+                buttonState = buttonState,
+                onClick = {
+                    coroutineScope.launch {
+                        buttonState = SSButtonState.LOADING
+                        delay(1000)
+                        buttonState = SSButtonState.SUCCESS
+                        delay(500)
+                        onFinishOnboarding()
+                    }
+                },
+                cornerRadius = 100,
+                assetColor = whiteColor,
+                colors = buttonColors(
+                    containerColor = batombePrimary,
+                    contentColor = Color.White,
+                    disabledContainerColor = batombePrimary,
+                    disabledContentColor = Color.White
+                ),
+                text = stringResource(R.string.button_start_now),
+                fontSize = 14.sp,
+                fontFamily = PoppinsSemiBold
+            )
         } else {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center
-            ) {
-                SSJetPackComposeProgressButton(
-                    type = SSButtonType.CIRCLE,
-                    width = 380.dp,
-                    height = 50.dp,
-                    buttonState = nextButtonState,
-                    onClick = {
-                        coroutineScope.launch {
-                            nextButtonState = SSButtonState.LOADING
-                            delay(1000)
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            nextButtonState = SSButtonState.IDLE
-                        }
-                    },
-                    cornerRadius = 100,
-                    assetColor = whiteColor,
-                    successIconPainter = null,
-                    failureIconPainter = null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = primaryColor,
-                        contentColor = whiteColor,
-                        disabledContainerColor = primaryColor,
-                    ),
-                    text = stringResource(R.string.button_next),
-                    textModifier = Modifier,
-                    fontSize = 14.sp,
-                    fontFamily = PoppinsSemiBold
-                )
-            }
+            SSJetPackComposeProgressButton(
+                type = SSButtonType.CIRCLE,
+                width = 380.dp,
+                height = 50.dp,
+                buttonState = buttonState,
+                onClick = {
+                    coroutineScope.launch {
+                        pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                    }
+                },
+                cornerRadius = 100,
+                assetColor = whiteColor,
+                colors = buttonColors(
+                    containerColor = batombePrimary,
+                    contentColor = Color.White,
+                    disabledContainerColor = batombePrimary,
+                    disabledContentColor = Color.White
+                ),
+                text = stringResource(R.string.button_next),
+                fontSize = 14.sp,
+                fontFamily = PoppinsSemiBold
+            )
         }
     }
 }
@@ -272,120 +181,74 @@ fun OnBoardingScreen(
     onFinishOnboarding: () -> Unit,
     viewModel: OnBoardingViewModel = hiltViewModel()
 ) {
-    val pagerState = rememberPagerState(initialPage = 0)
-    val onBoardModel = getOnBoardModel()
+    val onBoardModels = getOnBoardModel()
+    val pagerState = rememberPagerState()
 
     fun completeOnboarding() {
         viewModel.completeOnBoarding()
         onFinishOnboarding()
     }
 
-    Column(
+    Scaffold(
         modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        HorizontalPager(
-            count = onBoardModel.size,
-            state = pagerState,
+        containerColor = batombeSecondary
+    ) { paddingValues ->
+        Column(
             modifier = Modifier
-                .weight(1f)
                 .fillMaxSize()
-        ) { page ->
-            OnBoardItem(page = onBoardModel[page])
-        }
-        Row(
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
+                .padding(paddingValues)
+                .background(batombeSecondary),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            repeat(onBoardModel.size) { index ->
-                val isSelected = pagerState.currentPage == index
-                Box(
-                    modifier = Modifier
-                        .padding(6.dp)
-                        .width(if (isSelected) 20.dp else 10.dp)
-                        .height(10.dp)
-                        .border(
-                            width = 0.5.dp,
-                            color = textColor,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .background(
-                            color = if (isSelected) primaryColor else Color.White,
-                            shape = CircleShape
-                        )
-                )
+            HorizontalPager(
+                count = onBoardModels.size,
+                state = pagerState,
+                modifier = Modifier.weight(1f)
+            ) { pageIndex ->
+                OnBoardItem(page = onBoardModels[pageIndex])
             }
+
+            Row(
+                modifier = Modifier.padding(vertical = 24.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(onBoardModels.size) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(4.dp)
+                            .width(if (isSelected) 24.dp else 12.dp)
+                            .height(12.dp)
+                            .background(
+                                color = if (isSelected) batombePrimary else Color.Gray,
+                                shape = CircleShape
+                            )
+                            .border(
+                                width = 1.dp,
+                                color = if (isSelected) batombePrimary else Color.Gray,
+                                shape = CircleShape
+                            )
+                    )
+                }
+            }
+
+            ButtonSection(
+                pagerState = pagerState,
+                onFinishOnboarding = ::completeOnboarding
+            )
         }
-        ButtonRow(
-            pagerState = pagerState,
-            onBoardModel = onBoardModel,
-            onFinishOnboarding = ::completeOnboarding
-        )
     }
 }
 
-@OptIn(ExperimentalPagerApi::class)
-@Composable
-fun OnBoardingScreenPreview(
-    onFinishOnboarding: () -> Unit = {}
-) {
-    val pagerState = rememberPagerState(initialPage = 0)
-    val onBoardModel = getOnBoardModel()
-
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.SpaceBetween,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        HorizontalPager(
-            count = onBoardModel.size,
-            state = pagerState,
-            modifier = Modifier
-                .weight(1f)
-                .fillMaxSize()
-        ) { page ->
-            OnBoardItem(page = onBoardModel[page])
-        }
-        Row(
-            modifier = Modifier.padding(top = 8.dp, bottom = 24.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(onBoardModel.size) { index ->
-                val isSelected = pagerState.currentPage == index
-                Box(
-                    modifier = Modifier
-                        .padding(6.dp)
-                        .width(if (isSelected) 20.dp else 10.dp)
-                        .height(10.dp)
-                        .border(
-                            width = 0.5.dp,
-                            color = textColor,
-                            shape = RoundedCornerShape(10.dp)
-                        )
-                        .background(
-                            color = if (isSelected) primaryColor else Color.White,
-                            shape = CircleShape
-                        )
-                )
-            }
-        }
-        ButtonRow(
-            pagerState = pagerState,
-            onBoardModel = onBoardModel,
-            onFinishOnboarding = onFinishOnboarding
-        )
-    }
-}
 
 @OptIn(ExperimentalPagerApi::class)
 @Preview(showBackground = true)
 @Composable
 fun OnBoardingPreview() {
     UrVoiceTheme {
-        OnBoardingScreenPreview(
+        OnBoardingScreen(
+            navController = rememberNavController(),
             onFinishOnboarding = {}
         )
     }

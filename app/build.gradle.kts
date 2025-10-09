@@ -21,7 +21,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        buildConfigField("String", "BASE_URL", "\"http://192.168.10.53:3000/\"")
+        buildConfigField("String", "BASE_URL", "\"https://batombe-api.nekosukuriputo.dev/\"")
     }
 
     buildTypes {
@@ -146,4 +146,5 @@ dependencies {
     // live data
     implementation (libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.runtime.livedata)
+
 }

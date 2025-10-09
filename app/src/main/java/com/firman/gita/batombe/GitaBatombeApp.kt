@@ -4,11 +4,14 @@ import android.app.Activity
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -17,41 +20,43 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.ui.unit.dp
 import com.firman.gita.batombe.ui.navigation.BottomAppBarWithFab
 import com.firman.gita.batombe.ui.navigation.BottomNavItem
 import com.firman.gita.batombe.ui.navigation.Screen
-import com.firman.gita.batombe.ui.pages.AnalyzeScreen
-import com.firman.gita.batombe.ui.pages.ArticleDetailScreen
-import com.firman.gita.batombe.ui.pages.ArticleScreen
-import com.firman.gita.batombe.ui.pages.EditProfileScreen
-import com.firman.gita.batombe.ui.pages.HistoryDetailScreen
-import com.firman.gita.batombe.ui.pages.HistoryScreen
-import com.firman.gita.batombe.ui.pages.HomeScreen
-import com.firman.gita.batombe.ui.pages.ImageProfilePreviewScreen
-import com.firman.gita.batombe.ui.pages.LoginScreen
-import com.firman.gita.batombe.ui.pages.OnBoardingScreen
-import com.firman.gita.batombe.ui.pages.ProfileScreen
-import com.firman.gita.batombe.ui.pages.RegisterScreen
-import com.firman.gita.batombe.ui.pages.SignScreen
-import com.firman.gita.batombe.ui.pages.RecordScreen
-import com.firman.gita.batombe.ui.pages.SpeechToTextScreen
-import com.firman.gita.batombe.ui.pages.SplashScreen
+import com.firman.gita.batombe.ui.pages.*
 import com.firman.gita.batombe.ui.theme.UrVoiceTheme
 import com.firman.gita.batombe.ui.viewmodel.ArticleViewModel
+import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
+import com.firman.gita.batombe.ui.viewmodel.HomeViewModel
 import com.firman.gita.batombe.ui.viewmodel.ProfileViewModel
 import com.firman.gita.batombe.ui.viewmodel.SpeechViewModel
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
-import androidx.core.net.toUri
-import com.firman.gita.batombe.ui.pages.GeneratePantunLoginScreen
-import com.firman.gita.batombe.ui.pages.GeneratePantunScreen
-import com.firman.gita.batombe.ui.pages.OutputPantunLoginScreen
-import com.firman.gita.batombe.ui.pages.OutputPantunScreen
-import com.firman.gita.batombe.ui.viewmodel.HistoryViewModel
-import com.firman.gita.batombe.ui.viewmodel.HomeViewModel
+
+@Composable
+fun UrVoiceApp() {
+    val navController = rememberNavController()
+    val context = LocalContext.current
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    BackHandler(enabled = true) {
+        when (currentRoute) {
+            Screen.Home.route, "article", Screen.Record.route,
+            Screen.History.route, Screen.Profile.route, Screen.Login.route,
+            Screen.Register.route, Screen.Sign.route, Screen.OnBoarding.route -> {
+                (context as? Activity)?.finish()
+            }
+            else -> {
+                if (!navController.popBackStack()) {
+                    (context as? Activity)?.finish()
+                }
+            }
+        }
+    }
+    UrVoiceRootApp(navController)
+}
 
 @Composable
 fun UrVoiceRootApp(
@@ -68,12 +73,8 @@ fun UrVoiceRootApp(
     )
 
     val bottomNavItems = listOf(
-        BottomNavItem(
-            Screen.Home.route,
-            "Home",
-            painterResource(R.drawable.ic_home)
-        ),
-        BottomNavItem("article", "Article", painterResource(R.drawable.ic_articles)),
+        BottomNavItem(Screen.Home.route, "Home", painterResource(R.drawable.ic_home)),
+//        BottomNavItem("article", "Article", painterResource(R.drawable.ic_articles)),
         BottomNavItem(
             Screen.GeneratePantunLogin.route,
             "Generate",
@@ -89,53 +90,9 @@ fun UrVoiceRootApp(
     Box(modifier = Modifier.fillMaxSize()) {
         NavHost(
             navController = navController,
-            startDestination = Screen.Login.route,
+            startDestination = Screen.Splash.route,
             modifier = Modifier.fillMaxSize()
         ) {
-            composable(Screen.GeneratePantun.route) {
-                GeneratePantunScreen(
-                    navController = navController
-                )
-            }
-
-            composable(Screen.GeneratePantunLogin.route) {
-                Box(modifier = Modifier.padding(bottom = 80.dp)) {
-                    GeneratePantunLoginScreen(
-                        navController = navController
-                    )
-                }
-            }
-
-            composable(
-                route = Screen.OutputPantun.route,
-                arguments = listOf(navArgument("pantunResult") {
-                    type = NavType.StringType
-                })
-            ) { backStackEntry ->
-                val encodedPantun = backStackEntry.arguments?.getString("pantunResult") ?: ""
-                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
-
-                OutputPantunScreen(
-                    navController = navController,
-                    pantunText = decodedPantun
-                )
-            }
-
-            composable(
-                route = Screen.OutputPantunLogin.route,
-                arguments = listOf(navArgument("pantunResult") {
-                    type = NavType.StringType
-                })
-            ) { backStackEntry ->
-                val encodedPantun = backStackEntry.arguments?.getString("pantunResult") ?: ""
-                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
-
-                OutputPantunLoginScreen(
-                    navController = navController,
-                    pantunText = decodedPantun
-                )
-            }
-
             composable(Screen.Splash.route) {
                 SplashScreen(navController)
             }
@@ -143,7 +100,7 @@ fun UrVoiceRootApp(
                 OnBoardingScreen(
                     navController = navController,
                     onFinishOnboarding = {
-                        navController.navigate(Screen.Sign.route) {
+                        navController.navigate(Screen.GeneratePantun.route) {
                             popUpTo(Screen.OnBoarding.route) { inclusive = true }
                         }
                     }
@@ -163,59 +120,77 @@ fun UrVoiceRootApp(
                 val homeEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(Screen.Home.route)
                 }
-
-                val refreshHome by homeEntry
-                    .savedStateHandle
-                    .getLiveData<Boolean>("refreshHome")
-                    .observeAsState()
-
+                val refreshHome by homeEntry.savedStateHandle.getLiveData<Boolean>("refreshHome").observeAsState()
                 LaunchedEffect(refreshHome) {
                     if (refreshHome == true) {
                         viewModel.loadInitialData()
                         homeEntry.savedStateHandle["refreshHome"] = false
                     }
                 }
-
-                HomeScreen(
-                    navController = navController,
-                    viewModel = viewModel
-                )
+                HomeScreen(navController = navController, viewModel = viewModel)
             }
-
             composable("article") {
                 val viewModel: ArticleViewModel = hiltViewModel()
-                ArticleScreen(
-                    viewModel = viewModel,
-                    navController = navController
-                )
+                ArticleScreen(viewModel = viewModel, navController = navController)
             }
             composable("article/{id}") { backStackEntry ->
                 val viewModel: ArticleViewModel = hiltViewModel()
-                val articleId =
-                    backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: return@composable
-
+                val articleId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: return@composable
                 ArticleDetailScreen(
                     viewModel = viewModel,
                     articleId = articleId,
                     onBackClick = { navController.popBackStack() }
                 )
             }
-
-            composable(Screen.Record.route) {
-                RecordScreen(
-                    viewModel = sharedSpeechViewModel,
-                    onNavigateToSpeechToText = {
-                        navController.navigate(Screen.SpeechToText.route)
-                    }
-                )
+            composable(Screen.GeneratePantun.route) {
+                GeneratePantunScreen(navController = navController)
             }
-
+            composable(Screen.GeneratePantunLogin.route) {
+                Box(modifier = Modifier.padding(bottom = 80.dp)) {
+                    GeneratePantunLoginScreen(navController = navController)
+                }
+            }
+            composable(
+                route = Screen.OutputPantun.route,
+                arguments = listOf(navArgument("pantunResult") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedPantun = backStackEntry.arguments?.getString("pantunResult") ?: ""
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                OutputPantunScreen(navController = navController, pantunText = decodedPantun)
+            }
+            composable(
+                route = Screen.OutputPantunLogin.route,
+                arguments = listOf(navArgument("pantunResult") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedPantun = backStackEntry.arguments?.getString("pantunResult") ?: ""
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                OutputPantunLoginScreen(navController = navController, pantunText = decodedPantun)
+            }
+            composable(
+                route = Screen.Record.route,
+                arguments = listOf(navArgument("pantunText") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedPantun = backStackEntry.arguments?.getString("pantunText") ?: ""
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                RecordScreen(navController = navController, pantunText = decodedPantun)
+            }
+            composable(
+                route = Screen.RecordResult.route,
+                arguments = listOf(
+                    navArgument("pantunText") { type = NavType.StringType },
+                    navArgument("audioFileName") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val encodedPantun = backStackEntry.arguments?.getString("pantunText") ?: ""
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                val encodedAudioFileName = backStackEntry.arguments?.getString("audioFileName") ?: ""
+                val decodedAudioFileName = URLDecoder.decode(encodedAudioFileName, StandardCharsets.UTF_8.name())
+                RecordResultScreen(pantunText = decodedPantun, audioFileName = decodedAudioFileName)
+            }
             composable(Screen.SpeechToText.route) {
                 SpeechToTextScreen(
                     viewModel = sharedSpeechViewModel,
-                    onBackClick = {
-                        navController.popBackStack()
-                    },
+                    onBackClick = { navController.popBackStack() },
                     onNavigateRecordScreen = {
                         navController.navigate(Screen.Record.route) {
                             popUpTo(Screen.SpeechToText.route) { inclusive = true }
@@ -223,16 +198,13 @@ fun UrVoiceRootApp(
                     },
                     onNavigateAnalyzeScreen = { text, fileName ->
                         val encodedText = URLEncoder.encode(text, StandardCharsets.UTF_8.toString())
-                        val encodedAudio =
-                            URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
-
+                        val encodedAudio = URLEncoder.encode(fileName, StandardCharsets.UTF_8.toString())
                         navController.navigate("analyze/$encodedText/$encodedAudio") {
                             popUpTo(Screen.SpeechToText.route) { inclusive = true }
                         }
                     }
                 )
             }
-
             composable(
                 route = "analyze/{text}/{audioFileName}",
                 arguments = listOf(
@@ -242,11 +214,8 @@ fun UrVoiceRootApp(
             ) { backStackEntry ->
                 val encodedText = backStackEntry.arguments?.getString("text") ?: ""
                 val encodedAudio = backStackEntry.arguments?.getString("audioFileName") ?: ""
-
                 val text = URLDecoder.decode(encodedText, StandardCharsets.UTF_8.toString())
-                val audioFileName =
-                    URLDecoder.decode(encodedAudio, StandardCharsets.UTF_8.toString())
-
+                val audioFileName = URLDecoder.decode(encodedAudio, StandardCharsets.UTF_8.toString())
                 AnalyzeScreen(
                     text = text,
                     audioFileName = audioFileName,
@@ -256,34 +225,21 @@ fun UrVoiceRootApp(
                             popUpTo(Screen.Home.route) { inclusive = false }
                             launchSingleTop = true
                         }
-
-                        navController.currentBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("refreshHistory", true)
-
-                        navController.getBackStackEntry(Screen.Home.route)
-                            .savedStateHandle["refreshHome"] = true
+                        navController.currentBackStackEntry?.savedStateHandle?.set("refreshHistory", true)
+                        navController.getBackStackEntry(Screen.Home.route).savedStateHandle["refreshHome"] = true
                     }
-
                 )
             }
-
             composable(Screen.History.route) {
                 val viewModel: HistoryViewModel = hiltViewModel()
-
                 val currentEntry by navController.currentBackStackEntryAsState()
-                val refreshTrigger = currentEntry
-                    ?.savedStateHandle
-                    ?.getLiveData<Boolean>("refreshHistory")
-                    ?.observeAsState()
-
+                val refreshTrigger = currentEntry?.savedStateHandle?.getLiveData<Boolean>("refreshHistory")?.observeAsState()
                 LaunchedEffect(refreshTrigger?.value) {
                     if (refreshTrigger?.value == true) {
                         viewModel.getAllHistory()
                         currentEntry?.savedStateHandle?.set("refreshHistory", false)
                     }
                 }
-
                 HistoryScreen(
                     viewModel = viewModel,
                     onHistoryItemClick = { historyData ->
@@ -291,103 +247,68 @@ fun UrVoiceRootApp(
                     }
                 )
             }
-
             composable(
                 route = "history_detail/{id}",
                 arguments = listOf(navArgument("id") { type = NavType.IntType })
             ) { backStackEntry ->
                 val historyId = backStackEntry.arguments?.getInt("id") ?: return@composable
-
-                HistoryDetailScreen(
-                    historyId = historyId,
-                    onBackClick = { navController.popBackStack() }
-                )
+                HistoryDetailScreen(historyId = historyId, onBackClick = { navController.popBackStack() })
             }
-
             composable(Screen.Profile.route) {
                 val viewModel: ProfileViewModel = hiltViewModel()
-
-                val shouldRefresh = navController.currentBackStackEntry
-                    ?.savedStateHandle
-                    ?.getLiveData<Boolean>("refreshProfile")
-                    ?.observeAsState()
-
+                val shouldRefresh = navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("refreshProfile")?.observeAsState()
                 LaunchedEffect(shouldRefresh?.value) {
                     if (shouldRefresh?.value == true) {
                         viewModel.getCurrentUser()
-                        navController.currentBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("refreshProfile", false)
+                        navController.currentBackStackEntry?.savedStateHandle?.set("refreshProfile", false)
                     }
                 }
-
                 LaunchedEffect(Unit) {
                     viewModel.getCurrentUser()
                 }
-
                 ProfileScreen(
                     viewModel = viewModel,
                     navController = navController,
-                    onEditProfileClick = {
-                        navController.navigate(Screen.EditProfile.route)
-                    }
+                    onEditProfileClick = { navController.navigate(Screen.EditProfile.route) }
                 )
             }
-
             composable(Screen.EditProfile.route) {
                 val viewModel: ProfileViewModel = hiltViewModel()
-
                 EditProfileScreen(
                     viewModel = viewModel,
                     onBackClick = { navController.popBackStack() },
                     onSaveClick = {
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("refreshProfile", true)
-
+                        navController.previousBackStackEntry?.savedStateHandle?.set("refreshProfile", true)
                         val homeEntry = navController.getBackStackEntry(Screen.Home.route)
                         homeEntry.savedStateHandle["refreshHome"] = true
-
                         navController.popBackStack()
                     },
                     onNavigateToImagePreview = { imageUri ->
-                        val encodedUri = URLEncoder.encode(
-                            imageUri.toString(),
-                            StandardCharsets.UTF_8.toString()
-                        )
+                        val encodedUri = URLEncoder.encode(imageUri.toString(), StandardCharsets.UTF_8.toString())
                         navController.navigate("image_profile_preview/$encodedUri")
                     }
                 )
             }
-
             composable(
                 route = "image_profile_preview/{imageUri}",
                 arguments = listOf(navArgument("imageUri") { type = NavType.StringType })
             ) { backStackEntry ->
                 val viewModel: ProfileViewModel = hiltViewModel()
-                val encodedUri =
-                    backStackEntry.arguments?.getString("imageUri") ?: return@composable
-                val imageUri =
-                    URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()).toUri()
-
+                val encodedUri = backStackEntry.arguments?.getString("imageUri") ?: return@composable
+                val imageUri = URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()).toUri()
                 ImageProfilePreviewScreen(
                     imageUri = imageUri,
                     onBackClick = { navController.popBackStack() },
                     onImageUploaded = {
-                        navController.previousBackStackEntry
-                            ?.savedStateHandle
-                            ?.set("refreshProfile", true)
-
+                        navController.previousBackStackEntry?.savedStateHandle?.set("refreshProfile", true)
                         val homeEntry = navController.getBackStackEntry(Screen.Home.route)
                         homeEntry.savedStateHandle["refreshHome"] = true
-
                         navController.popBackStack()
                     },
                     viewModel = viewModel
                 )
             }
         }
-
         if (currentRoute in routesWithBottomNav) {
             BottomAppBarWithFab(
                 items = bottomNavItems,
@@ -396,37 +317,6 @@ fun UrVoiceRootApp(
             )
         }
     }
-}
-
-@Composable
-fun UrVoiceApp() {
-    val navController = rememberNavController()
-    val context = LocalContext.current
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    BackHandler(enabled = true) {
-        when (currentRoute) {
-            Screen.Home.route,
-            "article",
-            Screen.Record.route,
-            Screen.History.route,
-            Screen.Profile.route,
-            Screen.Login.route,
-            Screen.Register.route,
-            Screen.Sign.route,
-            Screen.OnBoarding.route -> {
-                (context as? Activity)?.finish()
-            }
-
-            else -> {
-                if (!navController.popBackStack()) {
-                    (context as? Activity)?.finish()
-                }
-            }
-        }
-    }
-    UrVoiceRootApp(navController)
 }
 
 @Preview(showBackground = true)
