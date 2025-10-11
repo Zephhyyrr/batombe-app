@@ -47,6 +47,7 @@ fun UrVoiceApp() {
             Screen.Register.route, Screen.Sign.route, Screen.OnBoarding.route -> {
                 (context as? Activity)?.finish()
             }
+
             else -> {
                 if (!navController.popBackStack()) {
                     (context as? Activity)?.finish()
@@ -65,7 +66,7 @@ fun UrVoiceRootApp(
     val currentRoute = navBackStackEntry?.destination?.route
     val routesWithBottomNav = listOf(
         Screen.Home.route,
-        "article",
+        Screen.Feed.route,
         Screen.GeneratePantunLogin.route,
         Screen.History.route,
         Screen.Profile.route
@@ -73,7 +74,7 @@ fun UrVoiceRootApp(
 
     val bottomNavItems = listOf(
         BottomNavItem(Screen.Home.route, "Home", painterResource(R.drawable.ic_home)),
-        BottomNavItem("none", "Post", painterResource(R.drawable.ic_post), isEnabled = false),
+        BottomNavItem(Screen.Feed.route, "Post", painterResource(R.drawable.ic_post)),
         BottomNavItem(
             Screen.GeneratePantunLogin.route,
             "Generate",
@@ -118,7 +119,8 @@ fun UrVoiceRootApp(
                 val homeEntry = remember(backStackEntry) {
                     navController.getBackStackEntry(Screen.Home.route)
                 }
-                val refreshHome by homeEntry.savedStateHandle.getLiveData<Boolean>("refreshHome").observeAsState()
+                val refreshHome by homeEntry.savedStateHandle.getLiveData<Boolean>("refreshHome")
+                    .observeAsState()
                 LaunchedEffect(refreshHome) {
                     if (refreshHome == true) {
                         viewModel.loadInitialData()
@@ -133,7 +135,8 @@ fun UrVoiceRootApp(
             }
             composable("article/{id}") { backStackEntry ->
                 val viewModel: ArticleViewModel = hiltViewModel()
-                val articleId = backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: return@composable
+                val articleId =
+                    backStackEntry.arguments?.getString("id")?.toIntOrNull() ?: return@composable
                 ArticleDetailScreen(
                     viewModel = viewModel,
                     articleId = articleId,
@@ -181,8 +184,10 @@ fun UrVoiceRootApp(
             ) { backStackEntry ->
                 val encodedPantun = backStackEntry.arguments?.getString("pantunText") ?: ""
                 val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
-                val encodedAudioFileName = backStackEntry.arguments?.getString("audioFileName") ?: ""
-                val decodedAudioFileName = URLDecoder.decode(encodedAudioFileName, StandardCharsets.UTF_8.name())
+                val encodedAudioFileName =
+                    backStackEntry.arguments?.getString("audioFileName") ?: ""
+                val decodedAudioFileName =
+                    URLDecoder.decode(encodedAudioFileName, StandardCharsets.UTF_8.name())
                 RecordResultScreen(
                     navController = navController,
                     pantunText = decodedPantun,
@@ -204,7 +209,9 @@ fun UrVoiceRootApp(
             composable(Screen.History.route) {
                 val viewModel: HistoryViewModel = hiltViewModel()
                 val currentEntry by navController.currentBackStackEntryAsState()
-                val refreshTrigger = currentEntry?.savedStateHandle?.getLiveData<Boolean>("refreshHistory")?.observeAsState()
+                val refreshTrigger =
+                    currentEntry?.savedStateHandle?.getLiveData<Boolean>("refreshHistory")
+                        ?.observeAsState()
                 LaunchedEffect(refreshTrigger?.value) {
                     if (refreshTrigger?.value == true) {
                         viewModel.getAllHistory()
@@ -226,15 +233,24 @@ fun UrVoiceRootApp(
                 arguments = listOf(navArgument("id") { type = NavType.IntType })
             ) { backStackEntry ->
                 val historyId = backStackEntry.arguments?.getInt("id") ?: return@composable
-                HistoryDetailScreen(historyId = historyId, onBackClick = { navController.popBackStack() })
+                HistoryDetailScreen(
+                    historyId = historyId,
+                    onBackClick = { navController.popBackStack() },
+                    navController = navController
+                )
             }
             composable(Screen.Profile.route) {
                 val viewModel: ProfileViewModel = hiltViewModel()
-                val shouldRefresh = navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("refreshProfile")?.observeAsState()
+                val shouldRefresh =
+                    navController.currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("refreshProfile")
+                        ?.observeAsState()
                 LaunchedEffect(shouldRefresh?.value) {
                     if (shouldRefresh?.value == true) {
                         viewModel.getCurrentUser()
-                        navController.currentBackStackEntry?.savedStateHandle?.set("refreshProfile", false)
+                        navController.currentBackStackEntry?.savedStateHandle?.set(
+                            "refreshProfile",
+                            false
+                        )
                     }
                 }
                 LaunchedEffect(Unit) {
@@ -252,13 +268,19 @@ fun UrVoiceRootApp(
                     viewModel = viewModel,
                     onBackClick = { navController.popBackStack() },
                     onSaveClick = {
-                        navController.previousBackStackEntry?.savedStateHandle?.set("refreshProfile", true)
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "refreshProfile",
+                            true
+                        )
                         val homeEntry = navController.getBackStackEntry(Screen.Home.route)
                         homeEntry.savedStateHandle["refreshHome"] = true
                         navController.popBackStack()
                     },
                     onNavigateToImagePreview = { imageUri ->
-                        val encodedUri = URLEncoder.encode(imageUri.toString(), StandardCharsets.UTF_8.toString())
+                        val encodedUri = URLEncoder.encode(
+                            imageUri.toString(),
+                            StandardCharsets.UTF_8.toString()
+                        )
                         navController.navigate("image_profile_preview/$encodedUri")
                     }
                 )
@@ -268,18 +290,43 @@ fun UrVoiceRootApp(
                 arguments = listOf(navArgument("imageUri") { type = NavType.StringType })
             ) { backStackEntry ->
                 val viewModel: ProfileViewModel = hiltViewModel()
-                val encodedUri = backStackEntry.arguments?.getString("imageUri") ?: return@composable
-                val imageUri = URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()).toUri()
+                val encodedUri =
+                    backStackEntry.arguments?.getString("imageUri") ?: return@composable
+                val imageUri =
+                    URLDecoder.decode(encodedUri, StandardCharsets.UTF_8.toString()).toUri()
                 ImageProfilePreviewScreen(
                     imageUri = imageUri,
                     onBackClick = { navController.popBackStack() },
                     onImageUploaded = {
-                        navController.previousBackStackEntry?.savedStateHandle?.set("refreshProfile", true)
+                        navController.previousBackStackEntry?.savedStateHandle?.set(
+                            "refreshProfile",
+                            true
+                        )
                         val homeEntry = navController.getBackStackEntry(Screen.Home.route)
                         homeEntry.savedStateHandle["refreshHome"] = true
                         navController.popBackStack()
                     },
                     viewModel = viewModel
+                )
+            }
+
+            composable(Screen.Feed.route) {
+                FeedScreen(
+                    navController = navController,
+                    onCommentClick = { feedId ->
+                        navController.navigate(Screen.FeedDetail.createRoute(feedId))
+                    }
+                )
+            }
+
+            composable(
+                route = Screen.FeedDetail.route,
+                arguments = listOf(navArgument("id") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val feedId = backStackEntry.arguments?.getInt("id") ?: return@composable
+                FeedDetailScreen(
+                    feedId = feedId,
+                    navController = navController
                 )
             }
         }

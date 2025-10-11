@@ -70,7 +70,7 @@ fun HistoryCard(
                     modifier = Modifier.weight(1f).padding(16.dp)
                 ) {
                     Text(
-                        text = stringResource(R.string.pantun_text_title), // "Teks Pantun"
+                        text = stringResource(R.string.pantun_text_title),
                         fontSize = 14.sp,
                         fontFamily = PoppinsSemiBold,
                         color = textColor,

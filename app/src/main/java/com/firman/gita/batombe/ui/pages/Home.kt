@@ -43,6 +43,7 @@ import com.firman.gita.batombe.utils.ResultState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.core.net.toUri
 import com.firman.gita.batombe.ui.theme.PoppinsRegular
+import com.firman.gita.batombe.utils.MediaUrlUtils
 
 @Composable
 fun HomeScreen(
@@ -127,7 +128,7 @@ private fun UserHeader(user: CurrentUserResponse) {
     ) {
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(user.data?.profileImage)
+                .data(MediaUrlUtils.buildMediaUrl(user.data?.profileImage as String?))
                 .crossfade(true)
                 .build(),
             contentDescription = "Foto Profil",

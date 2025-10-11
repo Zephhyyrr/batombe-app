@@ -90,4 +90,12 @@ sealed class Screen(val route: String) {
             return "output_pantun/$encodedPantun"
         }
     }
+
+    @Serializable
+    object Feed : Screen("feed")
+
+    @Serializable
+    object FeedDetail : Screen("feed_detail/{id}") {
+        fun createRoute(id: Int) = "feed_detail/$id"
+    }
 }

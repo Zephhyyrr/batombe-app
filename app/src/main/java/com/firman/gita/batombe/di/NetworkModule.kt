@@ -6,10 +6,12 @@ import com.firman.gita.batombe.BuildConfig
 import com.firman.gita.batombe.data.remote.service.AnalyzeService
 import com.firman.gita.batombe.data.remote.service.ArticleService
 import com.firman.gita.batombe.data.remote.service.ExampleVideoService
+import com.firman.gita.batombe.data.remote.service.FeedService
 import com.firman.gita.batombe.data.remote.service.GeneratePantunService
 import com.firman.gita.batombe.data.remote.service.HistoryService
 import com.firman.gita.batombe.data.remote.service.UserService
 import com.firman.gita.batombe.data.remote.service.LoginService
+import com.firman.gita.batombe.data.remote.service.PublishService
 import com.firman.gita.batombe.data.remote.service.RegisterService
 import com.firman.gita.batombe.data.remote.service.SpeechService
 import com.firman.gita.batombe.utils.ApiConstant
@@ -113,5 +115,17 @@ object NetworkModule {
     @Provides
     fun provideExampleVideoService(retrofit: Retrofit): ExampleVideoService {
         return retrofit.create(ExampleVideoService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideFeedService(retrofit: Retrofit): FeedService {
+        return retrofit.create(FeedService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun providePublishService(retrofit: Retrofit): PublishService {
+        return retrofit.create(PublishService::class.java)
     }
 }

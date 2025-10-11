@@ -92,7 +92,7 @@ fun CardArticle(title: String, content: String, imageUrl: String, onClick: () ->
                         fontFamily = PoppinsSemiBold,
                         fontSize = 12.sp,
                         color = textColor,
-                        maxLines = 1,
+                        maxLines = 2,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 4.dp)

@@ -31,4 +31,14 @@ object ApiConstant {
     const val GENERATE_PANTUN = "/api/generate/"
 
     const val GET_ALL_EXAMPLE_VIDEOS = "/api/batombe-videos/"
+
+    // Feed Hit API
+    const val FEED_LIST = "api/feed/"
+    const val FEED_BY_ID = "api/feed/{id}"
+    const val PUBLISH_FEED = "api/history/{id}/public"
+
+    // Comment Hit API
+    const val POST_COMMENT = "api/comments/"
+    const val GET_COMMENTS = "api/comments/history/{historyId}"
+
 }

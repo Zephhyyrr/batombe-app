@@ -6,6 +6,8 @@ import com.firman.gita.batombe.data.repository.article.ArticleRepository
 import com.firman.gita.batombe.data.repository.article.ArticleRepositoryImpl
 import com.firman.gita.batombe.data.repository.example_video.ExampleVideoRepository
 import com.firman.gita.batombe.data.repository.example_video.ExampleVideoRepositoryImpl
+import com.firman.gita.batombe.data.repository.feed.FeedRepository
+import com.firman.gita.batombe.data.repository.feed.FeedRepositoryImpl
 import com.firman.gita.batombe.data.repository.generatePantun.GeneratePantunRepository
 import com.firman.gita.batombe.data.repository.generatePantun.GeneratePantunRepositoryImpl
 import com.firman.gita.batombe.data.repository.history.HistoryRepository
@@ -62,4 +64,8 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindExampleVideoRepository(exampleVideoRepositoryImpl: ExampleVideoRepositoryImpl): ExampleVideoRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindFeedRepository(feedRepositoryImpl: FeedRepositoryImpl): FeedRepository
 }

@@ -136,4 +136,7 @@
     <string name="batombe_title_3">Apa itu Batombe?</string>
     <string name="batombe_desc_3">Batombe adalah salah satu kekayaan sastra lisan dari Nagari Abai, Solok Selatan, Sumatera Barat. Inti dari tradisi ini adalah pertunjukan berbalas pantun antara dua kelompok atau lebih.</string>
     <string name="pantun_text_title">Pantun Batombe</string>
+    <string name="batombe_desc_2">GITA Batombe adalah aplikasi berbasis generative AI untuk menghasilkan pantun batombe sesuai dengan emosi dan tema yang di inginkan</string>
+    <string name="menu_feed_title">Postingan</string>
+    <string name="nodata_feed_title">No Data</string>
 </resources>
