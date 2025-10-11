@@ -258,6 +258,7 @@ private fun ProfileCard(
             } ?: ""
 
             ProfileCardContent(
+                isDatuak = state.data.data?.isDatuak ?: false,
                 name = state.data.data?.name ?: stringResource(R.string.unknown_name),
                 email = state.data.data?.email ?: stringResource(R.string.no_email_provided),
                 profileImage = imageUrl,

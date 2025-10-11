@@ -57,22 +57,18 @@ class FeedViewModel @Inject constructor(
         }
     }
 
-    // DIPERBAIKI: Menggunakan helper `launchApiCall` agar konsisten
     fun getFeeds() {
         launchApiCall(_feedsState, feedRepository.getFeeds())
     }
 
-    // DIHAPUS: suspend
     fun getFeedById(id: Int) {
         launchApiCall(_feedDetailState, feedRepository.getFeedById(id))
     }
 
-    // DIHAPUS: suspend
     fun publishFeed(historyId: Int) {
         launchApiCall(_publishState, feedRepository.publishFeed(historyId))
     }
 
-    // DIHAPUS: suspend
     fun getComments(historyId: Int) {
         launchApiCall(_commentsState, feedRepository.getComments(historyId))
     }

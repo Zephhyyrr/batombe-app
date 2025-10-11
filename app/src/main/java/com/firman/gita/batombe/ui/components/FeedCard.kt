@@ -39,7 +39,8 @@ fun FeedCard(
     onItemClick: (Int) -> Unit
 ) {
     Card(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
             .clickable {
                 feedItem.id?.let { id ->
                     onItemClick(id)
@@ -64,7 +65,9 @@ fun FeedCard(
                     error = painterResource(R.drawable.unknownperson),
                     contentDescription = "User Profile Image",
                     contentScale = ContentScale.Crop,
-                    modifier = Modifier.size(40.dp).clip(CircleShape)
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
@@ -89,7 +92,7 @@ fun FeedCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Box (
+            Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
             ) {
@@ -124,7 +127,7 @@ fun FeedCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Send,
+                    painter = painterResource(R.drawable.ic_comment),
                     contentDescription = "Comments",
                     tint = batombePrimary,
                     modifier = Modifier.size(20.dp)

@@ -43,6 +43,9 @@ data class GetCommentsResponse(
         val name: String? = null,
 
         @SerializedName("profileImage")
-        val profileImage: String? = null
+        val profileImage: String? = null,
+
+        @SerializedName("isDatuak")
+        val isDatuak: Boolean? = false
     )
 }

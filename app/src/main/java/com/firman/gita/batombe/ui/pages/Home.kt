@@ -149,12 +149,24 @@ private fun UserHeader(user: CurrentUserResponse) {
             fontSize = 14.sp
         )
 
-        Text(
-            text = user.data?.name ?: "Pengguna",
-            color = Color.White,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = user.data?.name ?: "Pengguna",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            if (user.data?.isDatuak == true) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    painter = painterResource(R.drawable.ic_verified),
+                    contentDescription = "Akun Datuak Terverifikasi",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }
 

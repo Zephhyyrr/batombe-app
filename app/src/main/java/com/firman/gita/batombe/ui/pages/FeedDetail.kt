@@ -1,5 +1,7 @@
 package com.firman.gita.batombe.ui.pages
 
+import android.content.Intent
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,8 +17,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -34,6 +38,12 @@ import com.firman.gita.batombe.utils.ResultState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.net.URL
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,10 +55,11 @@ fun FeedDetailScreen(
     val feedDetailState by viewModel.feedDetailState.collectAsState()
     val commentsState by viewModel.commentsState.collectAsState()
     val postCommentState by viewModel.postCommentState.collectAsState()
-
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val screenState = rememberFeedScreenState()
+    var isSharing by remember { mutableStateOf(false) }
 
     LaunchedEffect(feedId) {
         viewModel.getFeedById(feedId)
@@ -59,6 +70,10 @@ fun FeedDetailScreen(
         when (val result = postCommentState) {
             is ResultState.Success -> {
                 snackbarHostState.showSnackbar("Komentar berhasil dikirim!")
+                navController.previousBackStackEntry
+                    ?.savedStateHandle
+                    ?.set("comment_updated", true)
+                navController.popBackStack()
                 viewModel.resetPostCommentState()
             }
 
@@ -99,6 +114,75 @@ fun FeedDetailScreen(
                         )
                     }
                 },
+                actions = {
+                    if (feedDetailState is ResultState.Success) {
+                        val feedData = (feedDetailState as ResultState.Success).data
+                        if (feedData != null) {
+                            IconButton(
+                                enabled = !isSharing,
+                                onClick = {
+                                    scope.launch {
+                                        isSharing = true
+                                        try {
+                                            val sharedFile = withContext(Dispatchers.IO) {
+                                                val audioUrl =
+                                                    MediaUrlUtils.buildMediaUrl(feedData.fileAudio.orEmpty())
+                                                val tempFile =
+                                                    File(context.cacheDir, "shared_audio.mp3")
+                                                URL(audioUrl).openStream().use { input ->
+                                                    FileOutputStream(tempFile).use { output ->
+                                                        input.copyTo(output)
+                                                    }
+                                                }
+                                                tempFile
+                                            }
+                                            val authority = "${context.packageName}.provider"
+                                            val audioUri = FileProvider.getUriForFile(
+                                                context,
+                                                authority,
+                                                sharedFile
+                                            )
+                                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                                type = "audio/mp3"
+                                                putExtra(Intent.EXTRA_STREAM, audioUri)
+                                                putExtra(
+                                                    Intent.EXTRA_TEXT,
+                                                    "Dengarkan Pantun Batombe ini:\n\n${feedData.pantunBatombe}"
+                                                )
+                                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                            }
+                                            context.startActivity(
+                                                Intent.createChooser(
+                                                    shareIntent,
+                                                    "Bagikan audio via..."
+                                                )
+                                            )
+                                        } catch (e: Exception) {
+                                            Log.e("FeedDetailScreen", "Share failed", e)
+                                            snackbarHostState.showSnackbar("Gagal membagikan audio")
+                                        } finally {
+                                            isSharing = false
+                                        }
+                                    }
+                                }
+                            ) {
+                                if (isSharing) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(24.dp),
+                                        color = whiteColor,
+                                        strokeWidth = 2.dp
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_share),
+                                        contentDescription = "Share",
+                                        tint = whiteColor
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = batombePrimary)
             )
         },
@@ -106,7 +190,12 @@ fun FeedDetailScreen(
     ) { innerPadding ->
         when (val state = feedDetailState) {
             is ResultState.Loading, is ResultState.Initial -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
                     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading_animation))
                     LottieAnimation(
                         composition,
@@ -117,7 +206,12 @@ fun FeedDetailScreen(
             }
 
             is ResultState.Error -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    contentAlignment = Alignment.Center
+                ) {
                     Text(state.errorMessage)
                 }
             }
@@ -125,15 +219,16 @@ fun FeedDetailScreen(
             is ResultState.Success -> {
                 val feedData = state.data
                 if (feedData != null) {
-                    Column(modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
+                    ) {
                         LazyColumn(
                             modifier = Modifier.weight(1f),
                             contentPadding = PaddingValues(16.dp),
                             verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
-                            // 1. Header Info User
                             item {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     AsyncImage(
@@ -157,14 +252,12 @@ fun FeedDetailScreen(
                                     )
                                 }
                             }
-
                             item {
-                                val buttonState = screenState.audioButtonState
                                 SSJetPackComposeProgressButton(
                                     type = SSButtonType.CIRCLE,
                                     width = 400.dp,
                                     height = 45.dp,
-                                    buttonState = buttonState,
+                                    buttonState = screenState.audioButtonState,
                                     onClick = {
                                         screenState.handlePlayPause(
                                             feedId = feedData.id ?: -1,
@@ -177,7 +270,7 @@ fun FeedDetailScreen(
                                         contentColor = Color.White
                                     ),
                                     assetColor = Color.White,
-                                    text = when (buttonState) {
+                                    text = when (screenState.audioButtonState) {
                                         SSButtonState.LOADING -> "Memuat Audio..."
                                         SSButtonState.SUCCESS -> "Jeda Audio"
                                         SSButtonState.FAILURE -> "Gagal Memutar"
@@ -185,28 +278,19 @@ fun FeedDetailScreen(
                                     }
                                 )
                             }
+                            item { FeedDetailCard(data = feedData) }
 
-                            item {
-                                FeedDetailCard(data = feedData)
-                            }
-
-                            item {
-                                when (val commentsResult = commentsState) {
-                                    is ResultState.Success -> {
+                            when (val commentsResult = commentsState) {
+                                is ResultState.Success -> {
+                                    item {
                                         Text(
                                             "Komentar (${commentsResult.data.size})",
                                             fontFamily = PoppinsSemiBold,
                                             fontSize = 14.sp,
-                                            color = textColor
+                                            color = textColor,
+                                            modifier = Modifier.padding(top = 8.dp)
                                         )
                                     }
-
-                                    else -> {}
-                                }
-                            }
-
-                            when (val commentsResult = commentsState) {
-                                is ResultState.Success -> {
                                     if (commentsResult.data.isEmpty()) {
                                         item {
                                             Text(
@@ -214,7 +298,7 @@ fun FeedDetailScreen(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
                                                     .padding(vertical = 24.dp),
-                                                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                                textAlign = TextAlign.Center,
                                                 fontFamily = PoppinsRegular,
                                                 color = textColor.copy(alpha = 0.7f)
                                             )
@@ -222,21 +306,51 @@ fun FeedDetailScreen(
                                     } else {
                                         items(
                                             commentsResult.data,
-                                            key = { it.id ?: 0 }) { comment ->
-                                            CommentItem(comment = comment)
-                                        }
+                                            key = {
+                                                it.id ?: 0
+                                            }) { comment -> CommentItem(comment = comment) }
                                     }
                                 }
 
-                                else -> {}
+                                is ResultState.Loading -> {
+                                    item {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 16.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) { CircularProgressIndicator() }
+                                    }
+                                }
+
+                                is ResultState.Error -> {
+                                    item {
+                                        Text(
+                                            "Gagal memuat komentar: ${commentsResult.errorMessage}",
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                }
+
+                                is ResultState.Initial -> {}
                             }
                         }
                         CommentInput(
                             onSendClick = { commentText ->
-                                viewModel.postComment(feedId, commentText)
+                                viewModel.postComment(
+                                    feedId,
+                                    commentText
+                                )
                             }
                         )
                     }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding),
+                        contentAlignment = Alignment.Center
+                    ) { Text("Detail postingan tidak ditemukan.") }
                 }
             }
         }

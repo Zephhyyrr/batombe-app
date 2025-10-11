@@ -2,11 +2,14 @@ package com.firman.gita.batombe.ui.components
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -47,12 +50,24 @@ fun CommentItem(
         Spacer(modifier = Modifier.width(12.dp))
 
         Column {
-            Text(
-                text = comment.user?.name ?: "Unknown User",
-                fontFamily = PoppinsSemiBold,
-                fontSize = 13.sp,
-                color = textColor
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = comment.user?.name ?: "Unknown User",
+                    fontFamily = PoppinsSemiBold,
+                    fontSize = 13.sp,
+                    color = textColor
+                )
+
+                if (comment.user?.isDatuak == true) {
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Icon(
+                        painter = painterResource(R.drawable.ic_verified),
+                        contentDescription = "Akun Datuak Terverifikasi",
+                        tint = Color.Unspecified,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(2.dp))
             comment.content?.let {
                 Text(

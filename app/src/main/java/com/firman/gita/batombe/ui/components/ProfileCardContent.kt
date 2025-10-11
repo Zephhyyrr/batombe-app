@@ -45,6 +45,7 @@ fun ProfileCardContent(
     name: String,
     email: String,
     profileImage: String?,
+    isDatuak: Boolean = false,
     onEditClick: () -> Unit
 ) {
     Card(
@@ -86,12 +87,23 @@ fun ProfileCardContent(
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = name,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.Black
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = name,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = Color.Black
+                        )
+                        if (isDatuak) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                painter = painterResource(R.drawable.ic_verified),
+                                contentDescription = "Akun Datuak Terverifikasi",
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = email,

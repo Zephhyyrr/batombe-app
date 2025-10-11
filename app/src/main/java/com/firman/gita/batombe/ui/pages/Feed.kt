@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -39,6 +40,16 @@ fun FeedScreen(
 
     val feedsState by viewModel.feedsState.collectAsState()
     val screenState = rememberFeedScreenState()
+    val savedStateHandle = navController.currentBackStackEntry?.savedStateHandle
+    val shouldRefresh = savedStateHandle?.getLiveData<Boolean>("comment_updated")?.observeAsState()
+
+    LaunchedEffect(shouldRefresh?.value) {
+        if (shouldRefresh?.value == true) {
+            viewModel.getFeeds()
+
+            savedStateHandle.remove<Boolean>("comment_updated")
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose {

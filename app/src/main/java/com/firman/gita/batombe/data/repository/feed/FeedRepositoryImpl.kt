@@ -1,5 +1,6 @@
 package com.firman.gita.batombe.data.repository.feed
 
+import android.util.Log
 import com.firman.gita.batombe.data.local.datastore.AuthPreferences
 import com.firman.gita.batombe.data.remote.models.FeedByIdResponse
 import com.firman.gita.batombe.data.remote.models.FeedResponse
@@ -81,17 +82,21 @@ class FeedRepositoryImpl @Inject constructor(
         emit(ResultState.Error(e.message ?: "An unexpected error occurred"))
     }
 
-    override fun getComments(historyId: Int): Flow<ResultState<List<GetCommentsResponse.CommentData>>> = flow {
-        emit(ResultState.Loading)
-        val token = authPreferences.authToken.first() ?: ""
-        val response = feedService.getComments("Bearer $token", historyId)
+    override fun getComments(historyId: Int): Flow<ResultState<List<GetCommentsResponse.CommentData>>> =
+        flow {
+            emit(ResultState.Loading)
+            val token = "Bearer ${authPreferences.authToken.first() ?: ""}"
+            try {
+                val response = feedService.getComments(token, historyId)
 
-        if (response.success && response.data != null) {
-            emit(ResultState.Success(response.data))
-        } else {
-            emit(ResultState.Error(response.message ?: "Failed to fetch comments"))
+                if (response.success) {
+                    emit(ResultState.Success(response.data ?: emptyList()))
+                } else {
+                    emit(ResultState.Error(response.message ?: "Failed to fetch comments"))
+                }
+            } catch (e: Exception) {
+                Log.e("FeedRepository", "GetComments Exception", e)
+                emit(ResultState.Error(e.message ?: "An unexpected error occurred"))
+            }
         }
-    }.catch { e ->
-        emit(ResultState.Error(e.message ?: "An unexpected error occurred"))
-    }
 }

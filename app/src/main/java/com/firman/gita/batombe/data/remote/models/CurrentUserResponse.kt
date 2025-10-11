@@ -24,6 +24,9 @@ data class CurrentUserResponse(
         val email: String? = null,
 
         @SerializedName("profileImage")
-        val profileImage: Any? = null
+        val profileImage: Any? = null,
+
+        @SerializedName("isDatuak")
+        val isDatuak: Boolean? = false
     )
 }

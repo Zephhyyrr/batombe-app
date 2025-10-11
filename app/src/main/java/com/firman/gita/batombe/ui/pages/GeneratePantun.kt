@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.TextButton
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -151,7 +152,7 @@ fun GeneratePantunScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 32.dp) // Padding bawah ditambahkan di sini
+                .padding(bottom = 20.dp)
                 .height(56.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -199,7 +200,22 @@ fun GeneratePantunScreen(
                 fontFamily = PoppinsSemiBold
             )
         }
-        // Spacer terakhir dihilangkan
+
+        TextButton(
+            onClick = { navController.navigate(Screen.Login.route) },
+            modifier = Modifier
+                .padding(bottom = 32.dp)
+                .align(Alignment.CenterHorizontally)
+        ) {
+            Text(
+                text = "Langsung Login",
+                style = TextStyle(
+                    fontSize = 14.sp,
+                    fontFamily = PoppinsSemiBold,
+                    color = batombePrimary
+                )
+            )
+        }
     }
 }
 

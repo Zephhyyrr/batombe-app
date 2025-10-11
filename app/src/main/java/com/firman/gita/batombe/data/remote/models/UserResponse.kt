@@ -24,5 +24,8 @@ data class UserResponse(
 
         @SerializedName("profileImage")
         val profileImage: Any? = null,
+
+        @SerializedName("isDatuak")
+        val isDatuak: Boolean? = false
     )
 }
