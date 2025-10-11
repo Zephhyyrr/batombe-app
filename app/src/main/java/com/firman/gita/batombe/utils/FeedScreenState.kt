@@ -1,11 +1,10 @@
-package com.firman.gita.batombe.ui.pages
+package com.firman.gita.batombe.utils
 
 import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import com.firman.gita.batombe.utils.MediaUrlUtils
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job

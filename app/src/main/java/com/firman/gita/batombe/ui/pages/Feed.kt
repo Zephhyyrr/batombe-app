@@ -22,6 +22,7 @@ import com.firman.gita.batombe.ui.navigation.Screen
 import com.firman.gita.batombe.ui.theme.*
 import com.firman.gita.batombe.ui.viewmodel.FeedViewModel
 import com.firman.gita.batombe.utils.ResultState
+import com.firman.gita.batombe.utils.rememberFeedScreenState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 

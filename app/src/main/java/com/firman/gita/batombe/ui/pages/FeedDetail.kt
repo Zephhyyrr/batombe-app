@@ -35,6 +35,7 @@ import com.firman.gita.batombe.ui.theme.*
 import com.firman.gita.batombe.ui.viewmodel.FeedViewModel
 import com.firman.gita.batombe.utils.MediaUrlUtils
 import com.firman.gita.batombe.utils.ResultState
+import com.firman.gita.batombe.utils.rememberFeedScreenState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
@@ -253,30 +254,36 @@ fun FeedDetailScreen(
                                 }
                             }
                             item {
-                                SSJetPackComposeProgressButton(
-                                    type = SSButtonType.CIRCLE,
-                                    width = 400.dp,
-                                    height = 45.dp,
-                                    buttonState = screenState.audioButtonState,
-                                    onClick = {
-                                        screenState.handlePlayPause(
-                                            feedId = feedData.id ?: -1,
-                                            audioPath = feedData.fileAudio.orEmpty()
-                                        )
-                                    },
-                                    cornerRadius = 100,
-                                    colors = ButtonDefaults.buttonColors(
-                                        containerColor = batombePrimary,
-                                        contentColor = Color.White
-                                    ),
-                                    assetColor = Color.White,
-                                    text = when (screenState.audioButtonState) {
-                                        SSButtonState.LOADING -> "Memuat Audio..."
-                                        SSButtonState.SUCCESS -> "Jeda Audio"
-                                        SSButtonState.FAILURE -> "Gagal Memutar"
-                                        else -> "Putar Audio"
-                                    }
-                                )
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+
+                                    SSJetPackComposeProgressButton(
+                                        type = SSButtonType.CIRCLE,
+                                        width = 400.dp,
+                                        height = 45.dp,
+                                        buttonState = screenState.audioButtonState,
+                                        onClick = {
+                                            screenState.handlePlayPause(
+                                                feedId = feedData.id ?: -1,
+                                                audioPath = feedData.fileAudio.orEmpty()
+                                            )
+                                        },
+                                        cornerRadius = 100,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = batombePrimary,
+                                            contentColor = Color.White
+                                        ),
+                                        assetColor = Color.White,
+                                        text = when (screenState.audioButtonState) {
+                                            SSButtonState.LOADING -> "Memuat Audio..."
+                                            SSButtonState.SUCCESS -> "⏸️ Jeda Audio"
+                                            SSButtonState.FAILURE -> "Gagal Memutar"
+                                            else -> "Putar Audio"
+                                        }
+                                    )
+                                }
                             }
                             item { FeedDetailCard(data = feedData) }
 
