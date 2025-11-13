@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">UrVoice</string>
+    <string name="app_name">Rima Batombe</string>
     <string name="onboarding_title_1">ようこそ\nUrVoiceへ</string>
     <string name="onboarding_description_1">英語の音声認識と文法修正を提供し、英語でのスピーキングスキル向上をサポートします。</string>
     <string name="onboarding_title_2">話すスキルを分析するアプリ</string>

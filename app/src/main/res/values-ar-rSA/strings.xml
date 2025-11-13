@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">UrVoice</string>
+    <string name="app_name">Rima Batombe</string>
     <string name="onboarding_title_1">مرحبًا بك في\nUrVoice</string>
     <string name="onboarding_description_1">نحن نقدم تحويل الكلام إلى نص باللغة الإنجليزية وتصحيح القواعد لمساعدتك على تحسين مهاراتك في التحدث أمام الجمهور باللغة الإنجليزية.</string>
     <string name="onboarding_title_2">تطبيق لتحليل مهاراتك في التحدث</string>

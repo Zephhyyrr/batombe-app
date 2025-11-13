@@ -8,11 +8,11 @@ plugins {
 }
 
 android {
-    namespace = "com.firman.gita.batombe"
+    namespace = "com.firman.rima.batombe"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.firman.gita.batombe"
+        applicationId = "com.firman.rima.batombe"
         minSdk = 24
         //noinspection OldTargetApi,EditedTargetSdkVersion
         targetSdk = 35

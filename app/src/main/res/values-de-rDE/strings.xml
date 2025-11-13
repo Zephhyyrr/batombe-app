@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">UrVoice</string>
+    <string name="app_name">Rima Batombe</string>
     <string name="onboarding_title_1">Willkommen bei\nUrVoice</string>
     <string name="onboarding_description_1">Wir bieten Spracherkennung und Grammatikprüfung auf Englisch, um deine Fähigkeiten im öffentlichen Sprechen zu verbessern.</string>
     <string name="onboarding_title_2">Eine App zur Analyse deiner Sprachfähigkeiten</string>

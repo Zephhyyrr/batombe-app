@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">UrVoice</string>
+    <string name="app_name">Rima Batombe</string>
     <string name="onboarding_title_1">Добро пожаловать в\nUrVoice</string>
     <string name="onboarding_description_1">Мы предоставляем распознавание речи и проверку грамматики на английском языке, чтобы помочь вам улучшить навыки публичных выступлений.</string>
     <string name="onboarding_title_2">Приложение для анализа ваших навыков речи</string>

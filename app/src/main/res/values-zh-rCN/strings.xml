@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">UrVoice</string>
+    <string name="app_name">Rima Batombe</string>
     <string name="onboarding_title_1">欢迎使用\nUrVoice</string>
     <string name="onboarding_description_1">我们提供英语语音转文字和语法纠正，帮助您提升英语演讲能力。</string>
     <string name="onboarding_title_2">一个分析你口语能力的应用</string>
