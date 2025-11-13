@@ -2,12 +2,15 @@ package com.firman.gita.batombe.ui.pages
 
 import android.content.Intent
 import android.util.Log
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -286,6 +289,38 @@ fun FeedDetailScreen(
                                 }
                             }
                             item { FeedDetailCard(data = feedData) }
+                            item {
+                                val isLiked = feedData.isLiked ?: false
+                                val likeCount = feedData.like ?: 0
+
+                                val likeIcon =
+                                    if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+                                val likeColor = if (isLiked) batombePrimary else batombePrimary
+
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier
+                                        .clickable {
+                                            feedData.id?.let { id ->
+                                                viewModel.likeFeed(id)
+                                            }
+                                        }
+                                ) {
+                                    Icon(
+                                        imageVector = likeIcon,
+                                        contentDescription = "Like",
+                                        tint = likeColor,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = "$likeCount Suka",
+                                        fontFamily = PoppinsMedium,
+                                        color = likeColor,
+                                        fontSize = 14.sp,
+                                    )
+                                }
+                            }
 
                             when (val commentsResult = commentsState) {
                                 is ResultState.Success -> {
@@ -321,12 +356,22 @@ fun FeedDetailScreen(
 
                                 is ResultState.Loading -> {
                                     item {
+                                        val composition by rememberLottieComposition(
+                                            LottieCompositionSpec.RawRes(R.raw.loading_animation)
+                                        )
                                         Box(
                                             modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(vertical = 16.dp),
+                                                .fillMaxWidth(),
                                             contentAlignment = Alignment.Center
-                                        ) { CircularProgressIndicator() }
+                                        ) {
+                                            LottieAnimation(
+                                                composition = composition,
+                                                iterations = LottieConstants.IterateForever,
+                                                modifier = Modifier
+                                                    .size(150.dp)
+                                                    .align(Alignment.Center)
+                                            )
+                                        }
                                     }
                                 }
 

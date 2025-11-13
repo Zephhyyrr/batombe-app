@@ -22,6 +22,9 @@ data class FeedResponse(
         @SerializedName("pantunBatombe")
         val pantunBatombe: String? = null,
 
+        @SerializedName("like")
+        val like: Int? = null,
+
         @SerializedName("userId")
         val userId: Int? = null,
 
@@ -41,7 +44,10 @@ data class FeedResponse(
         val comments: List<Any>? = null,
 
         @SerializedName("_count")
-        val count: Count? = null
+        val count: Count? = null,
+
+        @SerializedName("isLiked")
+        val isLiked: Boolean? = false
     )
 
     data class User(

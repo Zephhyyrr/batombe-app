@@ -5,6 +5,7 @@ import com.firman.gita.batombe.data.local.datastore.AuthPreferences
 import com.firman.gita.batombe.data.remote.models.FeedByIdResponse
 import com.firman.gita.batombe.data.remote.models.FeedResponse
 import com.firman.gita.batombe.data.remote.models.GetCommentsResponse
+import com.firman.gita.batombe.data.remote.models.LikeFeedResponse
 import com.firman.gita.batombe.data.remote.models.PostCommentResponse
 import com.firman.gita.batombe.data.remote.models.PublishHistoryResponse
 import com.firman.gita.batombe.data.remote.request.PostCommentRequest
@@ -96,6 +97,25 @@ class FeedRepositoryImpl @Inject constructor(
                 }
             } catch (e: Exception) {
                 Log.e("FeedRepository", "GetComments Exception", e)
+                emit(ResultState.Error(e.message ?: "An unexpected error occurred"))
+            }
+        }
+
+    override fun likeFeed(historyId: Int): Flow<ResultState<LikeFeedResponse.Data>> =
+        flow {
+            emit(ResultState.Loading)
+            val token = "Bearer ${authPreferences.authToken.first() ?: ""}"
+
+            try {
+                val response = feedService.likeFeed(token, historyId)
+
+                if (response.success && response.data != null) {
+                    emit(ResultState.Success(response.data))
+                } else {
+                    emit(ResultState.Error(response.message ?: "Failed to like feed"))
+                }
+            } catch (e: Exception) {
+                Log.e("FeedRepository", "LikeFeed Exception", e)
                 emit(ResultState.Error(e.message ?: "An unexpected error occurred"))
             }
         }

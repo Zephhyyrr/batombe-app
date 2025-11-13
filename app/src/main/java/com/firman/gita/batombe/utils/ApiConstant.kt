@@ -36,6 +36,7 @@ object ApiConstant {
     const val FEED_LIST = "api/feed/"
     const val FEED_BY_ID = "api/feed/{id}"
     const val PUBLISH_FEED = "api/history/{id}/public"
+    const val LIKE_FEED = "api/feed/like/{id}"
 
     // Comment Hit API
     const val POST_COMMENT = "api/comments/"

@@ -13,4 +13,5 @@ interface FeedRepository {
         historyId: Int
     ): Flow<ResultState<PostCommentResponse.CommentData>>
     fun getComments(historyId: Int): Flow<ResultState<List<GetCommentsResponse.CommentData>>>
+    fun likeFeed(historyId: Int): Flow<ResultState<LikeFeedResponse.Data>>
 }

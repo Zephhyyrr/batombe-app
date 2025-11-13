@@ -147,6 +147,11 @@ fun FeedScreen(
                                     },
                                     onItemClick = { feedId ->
                                         navController.navigate(Screen.FeedDetail.createRoute(feedId))
+                                    },
+                                    onLikeClick = {
+                                        feedItem.id?.let { id ->
+                                            viewModel.likeFeed(id)
+                                        }
                                     }
                                 )
                             }

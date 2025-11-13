@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,6 +42,11 @@ class FeedViewModel @Inject constructor(
         MutableStateFlow<ResultState<PostCommentResponse.CommentData>>(ResultState.Initial)
     val postCommentState: StateFlow<ResultState<PostCommentResponse.CommentData>> =
         _postCommentState.asStateFlow()
+
+    private val _likeState =
+        MutableStateFlow<ResultState<LikeFeedResponse.Data>>(ResultState.Initial)
+    val likeState: StateFlow<ResultState<LikeFeedResponse.Data>> =
+        _likeState.asStateFlow()
 
     init {
         getFeeds()
@@ -84,12 +90,58 @@ class FeedViewModel @Inject constructor(
         }
     }
 
+    fun likeFeed(historyId: Int) {
+        viewModelScope.launch {
+            feedRepository.likeFeed(historyId).collect { result ->
+                _likeState.value = result
+                if (result is ResultState.Success) {
+                    val updatedLikeData = result.data
+
+                    _feedsState.update { currentState ->
+                        if (currentState is ResultState.Success) {
+                            val updatedList = currentState.data.map { feedItem ->
+                                if (feedItem.id == historyId) {
+                                    feedItem.copy(
+                                        isLiked = updatedLikeData.isLiked,
+                                        like = updatedLikeData.like
+                                    )
+                                } else {
+                                    feedItem
+                                }
+                            }
+                            ResultState.Success(updatedList)
+                        } else {
+                            currentState
+                        }
+                    }
+
+                    _feedDetailState.update { detailState ->
+                        if (detailState is ResultState.Success && detailState.data.id == historyId) {
+                            ResultState.Success(
+                                detailState.data.copy(
+                                    isLiked = updatedLikeData.isLiked,
+                                    like = updatedLikeData.like
+                                )
+                            )
+                        } else {
+                            detailState
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun resetPublishState() {
         _publishState.value = ResultState.Initial
     }
 
     fun resetPostCommentState() {
         _postCommentState.value = ResultState.Initial
+    }
+
+    fun resetLikeState() {
+        _likeState.value = ResultState.Initial
     }
 
     fun clearFeedDetail() {

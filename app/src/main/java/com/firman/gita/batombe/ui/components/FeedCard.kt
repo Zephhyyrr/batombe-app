@@ -4,7 +4,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Send
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -34,9 +35,11 @@ import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgres
 fun FeedCard(
     modifier: Modifier = Modifier,
     feedItem: FeedResponse.FeedItem,
+    // Hapus 'feedLike' dari parameter
     buttonState: SSButtonState,
     onPlayClick: () -> Unit,
-    onItemClick: (Int) -> Unit
+    onItemClick: (Int) -> Unit,
+    onLikeClick: () -> Unit
 ) {
     Card(
         modifier = modifier
@@ -125,20 +128,54 @@ fun FeedCard(
 
             Row(
                 verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_comment),
-                    contentDescription = "Comments",
-                    tint = batombePrimary,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "${feedItem.count?.comments ?: 0} Komentar",
-                    fontFamily = PoppinsMedium,
-                    color = batombePrimary,
-                    fontSize = 12.sp,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable(onClick = onLikeClick)
+                ) {
+                    val isLiked = feedItem.isLiked ?: false
+                    val likeCount = feedItem.like ?: 0
+
+                    val likeIcon =
+                        if (isLiked) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+                    val likeColor = if (isLiked) batombePrimary else batombePrimary
+
+                    Icon(
+                        imageVector = likeIcon,
+                        contentDescription = "Likes",
+                        tint = likeColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "$likeCount Suka",
+                        fontFamily = PoppinsMedium,
+                        color = likeColor,
+                        fontSize = 12.sp,
+                    )
+                }
+
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    val commentCount = feedItem.count?.comments ?: 0
+
+                    Icon(
+                        painter = painterResource(R.drawable.ic_comment),
+                        contentDescription = "Comments",
+                        tint = batombePrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "$commentCount Komentar",
+                        fontFamily = PoppinsMedium,
+                        color = batombePrimary,
+                        fontSize = 12.sp,
+                    )
+                }
             }
         }
     }

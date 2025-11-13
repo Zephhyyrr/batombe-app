@@ -3,6 +3,7 @@ package com.firman.gita.batombe.data.remote.service
 import com.firman.gita.batombe.data.remote.models.FeedByIdResponse
 import com.firman.gita.batombe.data.remote.models.FeedResponse
 import com.firman.gita.batombe.data.remote.models.GetCommentsResponse
+import com.firman.gita.batombe.data.remote.models.LikeFeedResponse
 import com.firman.gita.batombe.data.remote.models.PostCommentResponse
 import com.firman.gita.batombe.data.remote.request.PostCommentRequest
 import com.firman.gita.batombe.utils.ApiConstant
@@ -36,4 +37,10 @@ interface FeedService {
         @Header("Authorization") token: String,
         @Path("historyId") historyId: Int
     ): GetCommentsResponse
+
+    @POST(ApiConstant.LIKE_FEED)
+    suspend fun likeFeed(
+        @Header("Authorization") token: String,
+        @Path("id") feedId: Int
+    ): LikeFeedResponse
 }
