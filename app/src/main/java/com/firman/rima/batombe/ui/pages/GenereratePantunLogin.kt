@@ -24,17 +24,18 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.firman.rima.batombe.R
 import com.firman.rima.batombe.ui.navigation.Screen
 import com.firman.rima.batombe.ui.theme.PoppinsSemiBold
 import com.firman.rima.batombe.ui.theme.batombePrimary
+import com.firman.rima.batombe.ui.theme.batombeSecondary
+import com.firman.rima.batombe.ui.theme.whiteColor
 import com.firman.rima.batombe.ui.viewmodel.GeneratePantunViewModel
 import com.firman.rima.batombe.utils.ResultState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSJetPackComposeProgressButton
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import com.firman.rima.batombe.R
 
 @Composable
 fun GeneratePantunLoginScreen(
@@ -51,153 +52,162 @@ fun GeneratePantunLoginScreen(
     val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.generatePantunState.collectAsStateWithLifecycle()
 
+    // Flag untuk mengunci navigasi agar hanya terjadi sekali per sukses
+    var hasNavigated by remember { mutableStateOf(false) }
+
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is ResultState.Success -> {
-                buttonState = SSButtonState.SUCCESS
-                val pantunResult = state.data.data
-                val pantunText = pantunResult?.pantun ?: "Pantun tidak ditemukan"
-                navController.navigate(Screen.OutputPantunLogin.createRoute(pantunText))
-                viewModel.resetState()
+                if (!hasNavigated) {
+                    buttonState = SSButtonState.SUCCESS
+
+                    // Ambil data pantun dengan aman.
+                    // Pastikan field 'pantun' sesuai dengan Data Class Response API Anda.
+                    // Jika API mengembalikan null, kita gunakan string kosong dulu untuk debug, jangan langsung "Tidak Ditemukan"
+                    val rawPantun = state.data.data?.pantun
+
+                    if (!rawPantun.isNullOrBlank()) {
+                        navController.navigate(Screen.OutputPantunLogin.createRoute(rawPantun))
+                        hasNavigated = true
+                        // PENTING: Jangan panggil viewModel.resetState() di sini agar data tidak hilang saat transisi
+                    } else {
+                        Toast.makeText(context, "Pantun berhasil dibuat namun datanya kosong.", Toast.LENGTH_LONG).show()
+                        buttonState = SSButtonState.IDLE
+                    }
+                }
             }
+
             is ResultState.Error -> {
                 buttonState = SSButtonState.FAILURE
-                Toast.makeText(
-                    context,
-                    "Error: ${state.errorMessage}",
-                    Toast.LENGTH_LONG
-                ).show()
-                delay(1500)
+                Toast.makeText(context, "Gagal: ${state.errorMessage}", Toast.LENGTH_LONG).show()
+                // Reset manual tombol agar user bisa coba lagi
                 buttonState = SSButtonState.IDLE
-
+                hasNavigated = false
                 viewModel.resetState()
             }
+
+            is ResultState.Loading -> {
+                buttonState = SSButtonState.LOADING
+            }
+
             else -> {
-                // Idle atau Loading - tidak ada aksi
+                buttonState = SSButtonState.IDLE
+                hasNavigated = false
             }
         }
     }
-        Column(
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .background(batombeSecondary)
+            .padding(horizontal = 15.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.logo_batombe_blue),
+            contentDescription = "Logo Pantun Batombe",
+            modifier = Modifier.size(120.dp),
+            contentScale = ContentScale.FillBounds
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Image(
+            painter = painterResource(id = R.drawable.rumah_gadang_1),
+            contentDescription = "Rumah Gadang",
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .background(Color.White)
-                .padding(horizontal = 15.dp),
-            horizontalAlignment = Alignment.Start
+                .fillMaxWidth()
+                .height(328.dp),
+            contentScale = ContentScale.FillBounds
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Text(
+            text = "Generate Batombe",
+            fontSize = 24.sp,
+            fontFamily = PoppinsSemiBold,
+            color = Color(0xFF2C1810),
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        InputField(
+            label = "JUMLAH BARIS",
+            value = jumlahBaris,
+            onValueChange = { jumlahBaris = it },
+            placeholder = "4"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        InputField(
+            label = "TEMA",
+            value = tema,
+            onValueChange = { tema = it },
+            placeholder = "Nasihat Pernikahan"
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        InputField(
+            label = "EMOSI",
+            value = emosi,
+            onValueChange = { emosi = it },
+            placeholder = "BAHAGIA"
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 75.dp)
+                .height(56.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.logo_gita_batombe_1),
-                contentDescription = "Logo Pantun Batombe",
-                modifier = Modifier
-                    .width(179.dp)
-                    .height(64.dp),
-                contentScale = ContentScale.FillBounds
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Image(
-                painter = painterResource(id = R.drawable.rumah_gadang_1),
-                contentDescription = "Rumah Gadang",
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(328.dp),
-                contentScale = ContentScale.FillBounds
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Generate Batombe",
-                fontSize = 24.sp,
-                fontFamily = PoppinsSemiBold,
-                color = Color(0xFF2C1810),
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            InputField(
-                label = "JUMLAH BARIS",
-                value = jumlahBaris,
-                onValueChange = { jumlahBaris = it },
-                placeholder = "4"
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            InputField(
-                label = "TEMA",
-                value = tema,
-                onValueChange = { tema = it },
-                placeholder = "Nasihat Pernikahan"
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            InputField(
-                label = "EMOSI",
-                value = emosi,
-                onValueChange = { emosi = it },
-                placeholder = "BAHAGIA"
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 32.dp)
-                    .height(56.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                SSJetPackComposeProgressButton(
-                    type = SSButtonType.CIRCLE,
-                    width = 400.dp,
-                    height = 56.dp,
-                    buttonBorderColor = Color.Transparent,
-                    buttonBorderWidth = 0.dp,
-                    buttonState = buttonState,
-                    onClick = {
-                        val jumlahBarisInt = jumlahBaris.toIntOrNull()
-                        if (jumlahBarisInt == null) {
-                            Toast.makeText(
-                                context,
-                                "Jumlah baris harus berupa angka.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else if (tema.isBlank() || emosi.isBlank()) {
-                            Toast.makeText(
-                                context,
-                                "Tema dan emosi tidak boleh kosong.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        } else {
-                            coroutineScope.launch {
-                                buttonState = SSButtonState.LOADING
-                                viewModel.generatePantun(jumlahBarisInt, tema, emosi)
-                            }
+            SSJetPackComposeProgressButton(
+                type = SSButtonType.CIRCLE,
+                width = 400.dp,
+                height = 56.dp,
+                buttonBorderColor = Color.Transparent,
+                buttonBorderWidth = 0.dp,
+                buttonState = buttonState,
+                onClick = {
+                    val jumlahBarisInt = jumlahBaris.toIntOrNull()
+                    if (jumlahBarisInt == null) {
+                        Toast.makeText(context, "Jumlah baris harus berupa angka.", Toast.LENGTH_SHORT).show()
+                    } else if (tema.isBlank() || emosi.isBlank()) {
+                        Toast.makeText(context, "Tema dan emosi tidak boleh kosong.", Toast.LENGTH_SHORT).show()
+                    } else {
+                        hasNavigated = false // Reset flag sebelum request baru
+                        coroutineScope.launch {
+                            viewModel.generatePantun(jumlahBarisInt, tema, emosi)
                         }
-                    },
-                    cornerRadius = 16,
-                    assetColor = Color.White,
-                    successIconPainter = null,
-                    failureIconPainter = null,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = batombePrimary,
-                        contentColor = Color.White,
-                        disabledContainerColor = batombePrimary,
-                        disabledContentColor = Color.White
-                    ),
-                    text = "GENERATE ✨",
-                    textModifier = Modifier,
-                    fontSize = 16.sp,
-                    fontFamily = PoppinsSemiBold
-                )
-            }
+                    }
+                },
+                cornerRadius = 16,
+                assetColor = Color.White,
+                successIconPainter = null,
+                failureIconPainter = null,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = batombePrimary,
+                    contentColor = whiteColor,
+                    disabledContainerColor = batombePrimary,
+                    disabledContentColor = whiteColor
+                ),
+                text = "GENERATE ✨",
+                textModifier = Modifier,
+                fontSize = 16.sp,
+                fontFamily = PoppinsSemiBold
+            )
         }
     }
+}
 
 @Composable
 private fun InputField(
@@ -210,11 +220,7 @@ private fun InputField(
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
             text = label,
-            style = TextStyle(
-                fontSize = 16.sp,
-                fontFamily = PoppinsSemiBold,
-                color = batombePrimary
-            ),
+            style = TextStyle(fontSize = 16.sp, fontFamily = PoppinsSemiBold, color = batombePrimary),
             modifier = Modifier.padding(bottom = 8.dp)
         )
         OutlinedTextField(
@@ -223,29 +229,17 @@ private fun InputField(
             placeholder = { Text(placeholder, color = Color(0xFFBDBDBD)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp)),
+                .background(Color.White, RoundedCornerShape(8.dp)),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = batombePrimary,
                 unfocusedBorderColor = Color.Transparent,
                 cursorColor = batombePrimary,
-                focusedContainerColor = Color(0xFFF5F5F5),
-                unfocusedContainerColor = Color(0xFFF5F5F5)
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
             ),
             shape = RoundedCornerShape(8.dp),
-            textStyle = TextStyle(
-                color = batombePrimary,
-                fontSize = 16.sp,
-                fontFamily = PoppinsSemiBold
-            ),
+            textStyle = TextStyle(color = batombePrimary, fontSize = 16.sp, fontFamily = PoppinsSemiBold),
             singleLine = true
         )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun GeneratePantunScreenLoginPreview() {
-    MaterialTheme {
-        GeneratePantunLoginScreen(navController = rememberNavController())
     }
 }

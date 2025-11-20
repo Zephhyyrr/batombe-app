@@ -30,11 +30,14 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.airbnb.lottie.compose.*
+import com.firman.rima.batombe.R
 import com.firman.rima.batombe.ui.components.CommentInput
 import com.firman.rima.batombe.ui.components.CommentItem
 import com.firman.rima.batombe.ui.components.FeedDetailCard
+import com.firman.rima.batombe.ui.navigation.Screen
 import com.firman.rima.batombe.ui.theme.*
 import com.firman.rima.batombe.ui.viewmodel.FeedViewModel
+import com.firman.rima.batombe.ui.viewmodel.MeaningViewModel
 import com.firman.rima.batombe.utils.MediaUrlUtils
 import com.firman.rima.batombe.utils.ResultState
 import com.firman.rima.batombe.utils.rememberFeedScreenState
@@ -46,7 +49,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
-import com.firman.rima.batombe.R
 import java.net.URL
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,16 +56,23 @@ import java.net.URL
 fun FeedDetailScreen(
     feedId: Int,
     navController: NavController,
-    viewModel: FeedViewModel = hiltViewModel()
+    viewModel: FeedViewModel = hiltViewModel(),
+    meaningViewModel: MeaningViewModel = hiltViewModel()
 ) {
     val feedDetailState by viewModel.feedDetailState.collectAsState()
     val commentsState by viewModel.commentsState.collectAsState()
     val postCommentState by viewModel.postCommentState.collectAsState()
+
+    val meaningState by meaningViewModel.meaningState.collectAsState()
+
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val screenState = rememberFeedScreenState()
     var isSharing by remember { mutableStateOf(false) }
+
+    var meaningButtonState by remember { mutableStateOf(SSButtonState.IDLE) }
+    var currentPantun by remember { mutableStateOf("") }
 
     LaunchedEffect(feedId) {
         viewModel.getFeedById(feedId)
@@ -84,6 +93,31 @@ fun FeedDetailScreen(
             is ResultState.Error -> {
                 snackbarHostState.showSnackbar("Gagal mengirim komentar: ${result.errorMessage}")
                 viewModel.resetPostCommentState()
+            }
+
+            else -> {}
+        }
+    }
+
+    LaunchedEffect(meaningState) {
+        when (val result = meaningState) {
+            is ResultState.Loading -> {
+                meaningButtonState = SSButtonState.LOADING
+            }
+
+            is ResultState.Success -> {
+                meaningButtonState = SSButtonState.IDLE
+                val meaningResult = result.data.data?.makna_batombe ?: "Makna tidak ditemukan"
+                if (currentPantun.isNotEmpty()) {
+                    navController.navigate(Screen.Meaning.createRoute(currentPantun, meaningResult))
+                }
+                meaningViewModel.resetState()
+            }
+
+            is ResultState.Error -> {
+                meaningButtonState = SSButtonState.FAILURE
+                snackbarHostState.showSnackbar("Gagal mencari arti: ${result.errorMessage}")
+                meaningViewModel.resetState()
             }
 
             else -> {}
@@ -284,11 +318,13 @@ fun FeedDetailScreen(
                                             SSButtonState.SUCCESS -> "⏸️ Jeda Audio"
                                             SSButtonState.FAILURE -> "Gagal Memutar"
                                             else -> "Putar Audio"
-                                        }
+                                        },
+                                        fontFamily = PoppinsSemiBold
                                     )
                                 }
                             }
                             item { FeedDetailCard(data = feedData) }
+
                             item {
                                 val isLiked = feedData.isLiked ?: false
                                 val likeCount = feedData.like ?: 0
@@ -298,27 +334,62 @@ fun FeedDetailScreen(
                                 val likeColor = if (isLiked) batombePrimary else batombePrimary
 
                                 Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .clickable {
-                                            feedData.id?.let { id ->
-                                                viewModel.likeFeed(id)
-                                            }
-                                        }
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        imageVector = likeIcon,
-                                        contentDescription = "Like",
-                                        tint = likeColor,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(
-                                        text = "$likeCount Suka",
-                                        fontFamily = PoppinsMedium,
-                                        color = likeColor,
-                                        fontSize = 14.sp,
-                                    )
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier
+                                            .clickable {
+                                                feedData.id?.let { id ->
+                                                    viewModel.likeFeed(id)
+                                                }
+                                            }
+                                            .padding(end = 16.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = likeIcon,
+                                            contentDescription = "Like",
+                                            tint = likeColor,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text(
+                                            text = "$likeCount Suka",
+                                            fontFamily = PoppinsMedium,
+                                            color = likeColor,
+                                            fontSize = 14.sp,
+                                        )
+                                    }
+
+                                    Box(
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        SSJetPackComposeProgressButton(
+                                            type = SSButtonType.CIRCLE,
+                                            width = 130.dp,
+                                            height = 40.dp,
+                                            buttonState = meaningButtonState,
+                                            onClick = {
+                                                feedData.pantunBatombe?.let { pantun ->
+                                                    currentPantun = pantun
+                                                    meaningViewModel.getMeaning(pantun)
+                                                }
+                                            },
+                                            cornerRadius = 100,
+                                            colors = ButtonDefaults.buttonColors(
+                                                containerColor = batombePrimary,
+                                                contentColor = whiteColor,
+                                                disabledContainerColor = batombePrimary,
+                                                disabledContentColor = whiteColor
+                                            ),
+                                            assetColor = Color.White,
+                                            text = "Cari Arti",
+                                            fontFamily = PoppinsSemiBold,
+                                            textModifier = Modifier.padding(horizontal = 8.dp)
+                                        )
+                                    }
                                 }
                             }
 

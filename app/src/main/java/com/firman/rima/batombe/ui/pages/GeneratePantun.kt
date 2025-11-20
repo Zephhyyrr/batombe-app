@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.TextButton
-import com.firman.rima.batombe.R
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,9 +24,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.firman.rima.batombe.R
 import com.firman.rima.batombe.ui.navigation.Screen
 import com.firman.rima.batombe.ui.theme.PoppinsSemiBold
 import com.firman.rima.batombe.ui.theme.batombePrimary
+import com.firman.rima.batombe.ui.theme.batombeSecondary
+import com.firman.rima.batombe.ui.theme.whiteColor
 import com.firman.rima.batombe.ui.viewmodel.GeneratePantunViewModel
 import com.firman.rima.batombe.utils.ResultState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
@@ -52,17 +53,24 @@ fun GeneratePantunScreen(
     val coroutineScope = rememberCoroutineScope()
     val uiState by viewModel.generatePantunState.collectAsStateWithLifecycle()
 
+    var hasNavigated by remember { mutableStateOf(false) }
+
     LaunchedEffect(uiState) {
         when (val state = uiState) {
             is ResultState.Success -> {
-                buttonState = SSButtonState.SUCCESS
-                val pantunResult = state.data.data
-                val pantunText = pantunResult?.pantun ?: "Pantun tidak ditemukan"
-                navController.navigate(Screen.OutputPantun.createRoute(pantunText)) {
-                    popUpTo(Screen.GeneratePantun.route) { inclusive = true }
+                if (!hasNavigated) {
+                    buttonState = SSButtonState.SUCCESS
+                    val pantunResult = state.data.data
+                    val pantunText = pantunResult?.pantun ?: "Pantun tidak ditemukan"
+
+                    if (pantunText.isNotBlank()) {
+                        navController.navigate(Screen.OutputPantun.createRoute(pantunText))
+                        hasNavigated = true
+                        viewModel.resetState()
+                    }
                 }
-                buttonState = SSButtonState.IDLE
             }
+
             is ResultState.Error -> {
                 buttonState = SSButtonState.FAILURE
                 Toast.makeText(
@@ -72,28 +80,34 @@ fun GeneratePantunScreen(
                 ).show()
                 delay(1500)
                 buttonState = SSButtonState.IDLE
+                hasNavigated = false
+                viewModel.resetState()
             }
+
+            is ResultState.Loading -> {
+                buttonState = SSButtonState.LOADING
+            }
+
             else -> {
-                // Idle atau Loading - tidak ada aksi
+                buttonState = SSButtonState.IDLE
+                hasNavigated = false
             }
         }
     }
 
-    // Perubahan dimulai di sini
     Column(
-        modifier = modifier // Menggunakan modifier dari parameter
+        modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .background(Color.White)
+            .background(batombeSecondary)
             .padding(horizontal = 15.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Image(
-            painter = painterResource(id = R.drawable.logo_gita_batombe_1),
+            painter = painterResource(id = R.drawable.logo_batombe_blue),
             contentDescription = "Logo Pantun Batombe",
             modifier = Modifier
-                .width(179.dp)
-                .height(64.dp),
+                .size(120.dp),
             contentScale = ContentScale.FillBounds
         )
 
@@ -177,8 +191,8 @@ fun GeneratePantunScreen(
                             Toast.LENGTH_SHORT
                         ).show()
                     } else {
+                        hasNavigated = false
                         coroutineScope.launch {
-                            buttonState = SSButtonState.LOADING
                             viewModel.generatePantun(jumlahBarisInt, tema, emosi)
                         }
                     }
@@ -189,9 +203,9 @@ fun GeneratePantunScreen(
                 failureIconPainter = null,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = batombePrimary,
-                    contentColor = Color.White,
+                    contentColor = whiteColor,
                     disabledContainerColor = batombePrimary,
-                    disabledContentColor = Color.White
+                    disabledContentColor = whiteColor
                 ),
                 text = "GENERATE ✨",
                 textModifier = Modifier,
@@ -243,13 +257,13 @@ private fun InputField(
             placeholder = { Text(placeholder, color = Color(0xFFBDBDBD)) },
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFF5F5F5), RoundedCornerShape(8.dp)),
+                .background(Color.White, RoundedCornerShape(8.dp)),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = batombePrimary,
                 unfocusedBorderColor = Color.Transparent,
                 cursorColor = batombePrimary,
-                focusedContainerColor = Color(0xFFF5F5F5),
-                unfocusedContainerColor = Color(0xFFF5F5F5)
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
             ),
             shape = RoundedCornerShape(8.dp),
             textStyle = TextStyle(

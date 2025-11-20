@@ -8,6 +8,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -69,7 +70,7 @@ fun SplashScreen(navController: NavController, viewModel: SplashViewModel = hilt
         }
 
         Text(
-            text = "GITA Batombe",
+            text = stringResource( R.string.app_name),
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp),

@@ -31,8 +31,8 @@ sealed class Screen(val route: String) {
     object History : Screen("history")
 
     @Serializable
-    data class HistoryDetail(val id: Int) : Screen("history_detail/$id") {
-        fun createRoute() = "history_detail/$id"
+    object HistoryDetail : Screen("history_detail/{id}") {
+        fun createRoute(id: Int) = "history_detail/$id"
     }
 
     @Serializable
@@ -100,5 +100,14 @@ sealed class Screen(val route: String) {
     }
 
     @Serializable
-    object Baraja : Screen("baraja")
+    object Kamus : Screen("kamus")
+
+    @Serializable
+    object Meaning : Screen("meaning/{originalPantun}/{meaningResult}") {
+        fun createRoute(originalPantun: String, meaningResult: String): String {
+            val encodedPantun = URLEncoder.encode(originalPantun, StandardCharsets.UTF_8.name())
+            val encodedMeaning = URLEncoder.encode(meaningResult, StandardCharsets.UTF_8.name())
+            return "meaning/$encodedPantun/$encodedMeaning"
+        }
+    }
 }

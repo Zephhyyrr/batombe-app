@@ -9,8 +9,10 @@ import com.firman.rima.batombe.data.remote.service.ExampleVideoService
 import com.firman.rima.batombe.data.remote.service.FeedService
 import com.firman.rima.batombe.data.remote.service.GeneratePantunService
 import com.firman.rima.batombe.data.remote.service.HistoryService
+import com.firman.rima.batombe.data.remote.service.KamusService
 import com.firman.rima.batombe.data.remote.service.UserService
 import com.firman.rima.batombe.data.remote.service.LoginService
+import com.firman.rima.batombe.data.remote.service.MeaningService
 import com.firman.rima.batombe.data.remote.service.PublishService
 import com.firman.rima.batombe.data.remote.service.RegisterService
 import com.firman.rima.batombe.data.remote.service.SpeechService
@@ -127,5 +129,17 @@ object NetworkModule {
     @Provides
     fun providePublishService(retrofit: Retrofit): PublishService {
         return retrofit.create(PublishService::class.java)
+    }
+
+    @Singleton
+    @Provides
+    fun provideKamusService(retrofit: Retrofit): KamusService {
+        return retrofit.create(KamusService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideMeaningService(retrofit: Retrofit): MeaningService {
+        return retrofit.create(MeaningService::class.java)
     }
 }

@@ -1,52 +1,30 @@
 package com.firman.rima.batombe.ui.pages
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ButtonDefaults.buttonColors
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.*
 import com.firman.rima.batombe.R
 import com.firman.rima.batombe.ui.navigation.Screen
-import com.firman.rima.batombe.ui.theme.PoppinsMedium
-import com.firman.rima.batombe.ui.theme.PoppinsSemiBold
-import com.firman.rima.batombe.ui.theme.batombeGray
-import com.firman.rima.batombe.ui.theme.batombePrimary
-import com.firman.rima.batombe.ui.theme.batombeSecondary
+import com.firman.rima.batombe.ui.theme.*
+import com.firman.rima.batombe.ui.viewmodel.MeaningViewModel
+import com.firman.rima.batombe.utils.ResultState
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonType
@@ -55,11 +33,27 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
+fun OutputPantunScreen(
+    navController: NavController,
+    pantunText: String = "",
+    meaningViewModel: MeaningViewModel = hiltViewModel()
+) {
     var buttonState by remember { mutableStateOf(SSButtonState.IDLE) }
+    var selectedTab by remember { mutableIntStateOf(0) }
+    val meaningState by meaningViewModel.meaningState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
-
     val systemUiController = rememberSystemUiController()
+
+    LaunchedEffect(selectedTab) {
+        if (selectedTab == 1) {
+            if (meaningState !is ResultState.Success) {
+                if (pantunText.isNotEmpty() && pantunText != "Pantun tidak ditemukan") {
+                    meaningViewModel.getMeaning(pantunText)
+                }
+            }
+        }
+    }
+
     SideEffect {
         systemUiController.setStatusBarColor(
             color = batombePrimary,
@@ -97,25 +91,58 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                 modifier = Modifier.fillMaxWidth(),
                 contentScale = ContentScale.FillWidth
             )
+
             Card(
-                modifier = Modifier
-                    .fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = batombeSecondary
-                ),
+                colors = CardDefaults.cardColors(containerColor = batombeSecondary),
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(vertical = 28.dp)
-                ) {
-                    Text(
-                        text = "Output",
-                        modifier = Modifier.padding(horizontal = 15.dp),
-                        fontSize = 20.sp,
-                        fontFamily = PoppinsSemiBold,
-                        color = Color.Black
-                    )
+                Column(modifier = Modifier.padding(vertical = 28.dp)) {
+
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 15.dp)
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Button(
+                            onClick = { selectedTab = 0 },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (selectedTab == 0) batombeGray else Color.Transparent,
+                                contentColor = if (selectedTab == 0) Color.Black else Color.Gray
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = null,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Output",
+                                fontFamily = PoppinsSemiBold,
+                                fontSize = 16.sp
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Button(
+                            onClick = { selectedTab = 1 },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (selectedTab == 1) batombeGray else Color.Transparent,
+                                contentColor = if (selectedTab == 1) Color.Black else Color.Gray
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            elevation = null,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Terjemahan",
+                                fontFamily = PoppinsSemiBold,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
 
                     Spacer(modifier = Modifier.height(20.dp))
 
@@ -126,9 +153,7 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                             .height(250.dp),
                         shape = RoundedCornerShape(16.dp),
                         elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                        colors = CardDefaults.cardColors(
-                            containerColor = batombeGray
-                        )
+                        colors = CardDefaults.cardColors(containerColor = batombeGray)
                     ) {
                         if (pantunText == "loading") {
                             Box(
@@ -145,17 +170,84 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                                 )
                             }
                         } else {
-                            Box(modifier = Modifier.fillMaxSize()) {
-                                Text(
-                                    text = pantunText.replace("\\n", "\n"),
-                                    modifier = Modifier
-                                        .padding(20.dp)
-                                        .verticalScroll(rememberScrollState()),
-                                    color = batombePrimary,
-                                    fontSize = 16.sp,
-                                    fontFamily = PoppinsMedium,
-                                    lineHeight = 24.sp
-                                )
+                            if (selectedTab == 0) {
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Text(
+                                        text = pantunText.replace("\\n", "\n"),
+                                        modifier = Modifier
+                                            .padding(20.dp)
+                                            .verticalScroll(rememberScrollState()),
+                                        color = batombePrimary,
+                                        fontSize = 16.sp,
+                                        fontFamily = PoppinsMedium,
+                                        lineHeight = 24.sp
+                                    )
+                                }
+                            } else {
+                                when (val state = meaningState) {
+                                    is ResultState.Loading -> {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            LottieAnimation(
+                                                modifier = Modifier.size(150.dp),
+                                                composition = rememberLottieComposition(
+                                                    LottieCompositionSpec.RawRes(R.raw.loading_animation)
+                                                ).value,
+                                                iterations = LottieConstants.IterateForever,
+                                                contentScale = ContentScale.Fit
+                                            )
+                                        }
+                                    }
+
+                                    is ResultState.Success -> {
+                                        val makna = state.data.data?.makna_batombe
+                                            ?: "Makna tidak ditemukan"
+                                        Box(modifier = Modifier.fillMaxSize()) {
+                                            Text(
+                                                text = makna,
+                                                modifier = Modifier
+                                                    .padding(20.dp)
+                                                    .verticalScroll(rememberScrollState()),
+                                                color = Color.Black,
+                                                fontSize = 16.sp,
+                                                fontFamily = PoppinsMedium,
+                                                lineHeight = 22.sp
+                                            )
+                                        }
+                                    }
+
+                                    is ResultState.Error -> {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text(
+                                                    text = "Gagal memuat arti",
+                                                    color = Color.Red,
+                                                    fontSize = 14.sp,
+                                                    fontFamily = PoppinsMedium
+                                                )
+                                                Button(
+                                                    onClick = {
+                                                        meaningViewModel.getMeaning(
+                                                            pantunText
+                                                        )
+                                                    },
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        containerColor = batombePrimary
+                                                    )
+                                                ) {
+                                                    Text("Coba Lagi", color = Color.White)
+                                                }
+                                            }
+                                        }
+                                    }
+
+                                    else -> {}
+                                }
                             }
                         }
                     }
@@ -172,8 +264,6 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                             type = SSButtonType.CIRCLE,
                             width = 400.dp,
                             height = 56.dp,
-                            buttonBorderColor = Color.Transparent,
-                            buttonBorderWidth = 0.dp,
                             buttonState = buttonState,
                             onClick = {
                                 coroutineScope.launch {
@@ -189,16 +279,13 @@ fun OutputPantunScreen(navController: NavController, pantunText: String = "") {
                             },
                             cornerRadius = 16,
                             assetColor = Color.White,
-                            successIconPainter = null,
-                            failureIconPainter = null,
-                            colors = buttonColors(
+                            colors = ButtonDefaults.buttonColors(
                                 containerColor = batombePrimary,
                                 contentColor = Color.White,
                                 disabledContainerColor = batombePrimary,
                                 disabledContentColor = Color.White
                             ),
                             text = "Login untuk buat batombe anda sendiri",
-                            textModifier = Modifier,
                             fontSize = 14.sp,
                             fontFamily = PoppinsSemiBold
                         )
@@ -215,7 +302,7 @@ fun OutputPantunScreenPreview() {
     MaterialTheme {
         OutputPantunScreen(
             navController = rememberNavController(),
-            pantunText = "Sample pantun text for preview"
+            pantunText = "Contoh pantun baris satu.\\nContoh pantun baris dua."
         )
     }
 }

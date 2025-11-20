@@ -12,8 +12,12 @@ import com.firman.rima.batombe.data.repository.generatePantun.GeneratePantunRepo
 import com.firman.rima.batombe.data.repository.generatePantun.GeneratePantunRepositoryImpl
 import com.firman.rima.batombe.data.repository.history.HistoryRepository
 import com.firman.rima.batombe.data.repository.history.HistoryRepositoryImpl
+import com.firman.rima.batombe.data.repository.kamus.KamusRepository
+import com.firman.rima.batombe.data.repository.kamus.KamusRepositoryImpl
 import com.firman.rima.batombe.data.repository.login.LoginRepository
 import com.firman.rima.batombe.data.repository.login.LoginRepositoryImpl
+import com.firman.rima.batombe.data.repository.meaning.MeaningRepository
+import com.firman.rima.batombe.data.repository.meaning.MeaningRepositoryImpl
 import com.firman.rima.batombe.data.repository.register.RegisterRepository
 import com.firman.rima.batombe.data.repository.register.RegisterRepositoryImpl
 import com.firman.rima.batombe.data.repository.speech.SpeechRepository
@@ -68,4 +72,12 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindFeedRepository(feedRepositoryImpl: FeedRepositoryImpl): FeedRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindKamusRepository(kamusRepositoryImpl: KamusRepositoryImpl): KamusRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindMeaningRepository(meaningRepositoryImpl: MeaningRepositoryImpl): MeaningRepository
 }

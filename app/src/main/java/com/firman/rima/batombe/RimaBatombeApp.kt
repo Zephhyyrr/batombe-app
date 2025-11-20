@@ -9,7 +9,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,7 +23,6 @@ import com.firman.rima.batombe.ui.navigation.BottomAppBarWithFab
 import com.firman.rima.batombe.ui.navigation.BottomNavItem
 import com.firman.rima.batombe.ui.navigation.Screen
 import com.firman.rima.batombe.ui.pages.*
-import com.firman.rima.batombe.ui.theme.UrVoiceTheme
 import com.firman.rima.batombe.ui.viewmodel.ArticleViewModel
 import com.firman.rima.batombe.ui.viewmodel.HistoryViewModel
 import com.firman.rima.batombe.ui.viewmodel.HomeViewModel
@@ -34,7 +32,7 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 
 @Composable
-fun UrVoiceApp() {
+fun RimaBatombeApp() {
     val navController = rememberNavController()
     val context = LocalContext.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -47,7 +45,6 @@ fun UrVoiceApp() {
             Screen.Register.route, Screen.Sign.route, Screen.OnBoarding.route -> {
                 (context as? Activity)?.finish()
             }
-
             else -> {
                 if (!navController.popBackStack()) {
                     (context as? Activity)?.finish()
@@ -55,11 +52,11 @@ fun UrVoiceApp() {
             }
         }
     }
-    UrVoiceRootApp(navController)
+    RimaBatombeRootApp(navController)
 }
 
 @Composable
-fun UrVoiceRootApp(
+fun RimaBatombeRootApp(
     navController: NavHostController = rememberNavController()
 ) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -67,7 +64,7 @@ fun UrVoiceRootApp(
     val routesWithBottomNav = listOf(
         Screen.Home.route,
         Screen.Feed.route,
-        Screen.Baraja.route,
+        Screen.Kamus.route,
         Screen.GeneratePantunLogin.route,
         Screen.History.route,
         Screen.Profile.route
@@ -76,7 +73,7 @@ fun UrVoiceRootApp(
     val bottomNavItems = listOf(
         BottomNavItem(Screen.Home.route, "Home", painterResource(R.drawable.ic_home)),
         BottomNavItem(Screen.Feed.route, "Post", painterResource(R.drawable.ic_post)),
-        BottomNavItem(Screen.Baraja.route, "Baraja", painterResource(R.drawable.ic_books)),
+        BottomNavItem(Screen.Kamus.route, "Baraja", painterResource(R.drawable.ic_books)),
         BottomNavItem(
             route = Screen.GeneratePantunLogin.route,
             icon = painterResource(R.drawable.ic_star),
@@ -157,7 +154,7 @@ fun UrVoiceRootApp(
                 arguments = listOf(navArgument("pantunResult") { type = NavType.StringType })
             ) { backStackEntry ->
                 val encodedPantun = backStackEntry.arguments?.getString("pantunResult") ?: ""
-                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.toString())
                 OutputPantunScreen(navController = navController, pantunText = decodedPantun)
             }
             composable(
@@ -165,7 +162,7 @@ fun UrVoiceRootApp(
                 arguments = listOf(navArgument("pantunResult") { type = NavType.StringType })
             ) { backStackEntry ->
                 val encodedPantun = backStackEntry.arguments?.getString("pantunResult") ?: ""
-                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.toString())
                 OutputPantunLoginScreen(navController = navController, pantunText = decodedPantun)
             }
             composable(
@@ -173,7 +170,7 @@ fun UrVoiceRootApp(
                 arguments = listOf(navArgument("pantunText") { type = NavType.StringType })
             ) { backStackEntry ->
                 val encodedPantun = backStackEntry.arguments?.getString("pantunText") ?: ""
-                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.toString())
                 RecordScreen(navController = navController, pantunText = decodedPantun)
             }
             composable(
@@ -184,11 +181,11 @@ fun UrVoiceRootApp(
                 )
             ) { backStackEntry ->
                 val encodedPantun = backStackEntry.arguments?.getString("pantunText") ?: ""
-                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.name())
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.toString())
                 val encodedAudioFileName =
                     backStackEntry.arguments?.getString("audioFileName") ?: ""
                 val decodedAudioFileName =
-                    URLDecoder.decode(encodedAudioFileName, StandardCharsets.UTF_8.name())
+                    URLDecoder.decode(encodedAudioFileName, StandardCharsets.UTF_8.toString())
                 RecordResultScreen(
                     navController = navController,
                     pantunText = decodedPantun,
@@ -224,13 +221,13 @@ fun UrVoiceRootApp(
                     onHistoryItemClick = { historyData ->
                         val historyId = historyData.id
                         if (historyId != null) {
-                            navController.navigate("history_detail/$historyId")
+                            navController.navigate(Screen.HistoryDetail.createRoute(historyId))
                         }
                     }
                 )
             }
             composable(
-                route = "history_detail/{id}",
+                route = Screen.HistoryDetail.route,
                 arguments = listOf(navArgument("id") { type = NavType.IntType })
             ) { backStackEntry ->
                 val historyId = backStackEntry.arguments?.getInt("id") ?: return@composable
@@ -238,6 +235,26 @@ fun UrVoiceRootApp(
                     historyId = historyId,
                     onBackClick = { navController.popBackStack() },
                     navController = navController
+                )
+            }
+            composable(
+                route = Screen.Meaning.route,
+                arguments = listOf(
+                    navArgument("originalPantun") { type = NavType.StringType },
+                    navArgument("meaningResult") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val encodedPantun = backStackEntry.arguments?.getString("originalPantun") ?: ""
+                val decodedPantun = URLDecoder.decode(encodedPantun, StandardCharsets.UTF_8.toString())
+
+                val encodedMeaning = backStackEntry.arguments?.getString("meaningResult") ?: ""
+                val decodedMeaning =
+                    URLDecoder.decode(encodedMeaning, StandardCharsets.UTF_8.toString())
+
+                MeaningScreen(
+                    navController = navController,
+                    pantun = decodedPantun,
+                    meaning = decodedMeaning
                 )
             }
             composable(Screen.Profile.route) {
@@ -331,8 +348,10 @@ fun UrVoiceRootApp(
                 )
             }
 
-            composable(Screen.Baraja.route) {
-                BarajaScreen()
+            composable(Screen.Kamus.route) {
+                KamusScreen(
+                    navController = navController
+                )
             }
         }
         if (currentRoute in routesWithBottomNav) {
@@ -342,13 +361,5 @@ fun UrVoiceRootApp(
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun UrVoiceAppPreview() {
-    UrVoiceTheme {
-        UrVoiceRootApp()
     }
 }

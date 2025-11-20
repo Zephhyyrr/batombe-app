@@ -29,6 +29,7 @@ object ApiConstant {
 
     // Generate Pantun Hit API
     const val GENERATE_PANTUN = "/api/generate/"
+    const val GENERATE_MEANING = "/api/generate/meaning"
 
     const val GET_ALL_EXAMPLE_VIDEOS = "/api/batombe-videos/"
 
@@ -41,5 +42,9 @@ object ApiConstant {
     // Comment Hit API
     const val POST_COMMENT = "api/comments/"
     const val GET_COMMENTS = "api/comments/history/{historyId}"
+
+    // Kamus Hit API
+    const val KAMUS_LIST = "api/kamus/"
+    const val KAMUS_DONE_PROGRESS = "api/kamus/done/{id}"
 
 }

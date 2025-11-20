@@ -17,17 +17,20 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.*
+import com.firman.rima.batombe.R
 import com.firman.rima.batombe.ui.components.HistoryDetailCard
 import com.firman.rima.batombe.ui.navigation.Screen
 import com.firman.rima.batombe.ui.theme.*
 import com.firman.rima.batombe.ui.viewmodel.FeedViewModel
 import com.firman.rima.batombe.ui.viewmodel.HistoryViewModel
+import com.firman.rima.batombe.ui.viewmodel.MeaningViewModel
 import com.firman.rima.batombe.utils.MediaUrlUtils
 import com.firman.rima.batombe.utils.ResultState
 import com.simform.ssjetpackcomposeprogressbuttonlibrary.SSButtonState
@@ -39,7 +42,6 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.net.URL
-import com.firman.rima.batombe.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,14 +51,19 @@ fun HistoryDetailScreen(
     onBackClick: () -> Unit,
     navController: NavController,
     viewModel: HistoryViewModel = hiltViewModel(),
-    feedViewModel: FeedViewModel = hiltViewModel()
+    feedViewModel: FeedViewModel = hiltViewModel(),
+    meaningViewModel: MeaningViewModel = hiltViewModel()
 ) {
     val historyDetailState by viewModel.historyDetailState.collectAsState()
     val publishState by feedViewModel.publishState.collectAsState()
+    val meaningState by meaningViewModel.meaningState.collectAsState()
+
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
     val buttonState by remember { mutableStateOf(SSButtonState.IDLE) }
+    var meaningButtonState by remember { mutableStateOf(SSButtonState.IDLE) }
 
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var isPlaying by remember { mutableStateOf(false) }
@@ -64,34 +71,46 @@ fun HistoryDetailScreen(
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var isSharing by remember { mutableStateOf(false) }
 
+    var currentPantun by remember { mutableStateOf("") }
+
     LaunchedEffect(historyId) {
         viewModel.getHistoryById(historyId)
     }
 
     LaunchedEffect(publishState) {
-        when (val result = publishState) {
-            is ResultState.Success -> {
-                viewModel.getHistoryById(historyId)
-                feedViewModel.resetPublishState()
+        if (publishState is ResultState.Success) {
+            viewModel.getHistoryById(historyId)
+            feedViewModel.resetPublishState()
+            navController.navigate(Screen.Feed.route) {
+                popUpTo(Screen.Home.route) { inclusive = false }
             }
-
-            is ResultState.Error -> {
-                feedViewModel.resetPublishState()
-            }
-
-            else -> {
-            }
+        } else if (publishState is ResultState.Error) {
+            feedViewModel.resetPublishState()
         }
     }
 
-    LaunchedEffect(publishState) {
-        if (publishState is ResultState.Success) {
-            navController.navigate(Screen.Feed.route) {
-                popUpTo(Screen.Home.route) {
-                    inclusive = false
-                }
+    LaunchedEffect(meaningState) {
+        when (val result = meaningState) {
+            is ResultState.Loading -> {
+                meaningButtonState = SSButtonState.LOADING
             }
-            feedViewModel.resetPublishState()
+
+            is ResultState.Success -> {
+                meaningButtonState = SSButtonState.IDLE
+                val meaningResult = result.data.data?.makna_batombe ?: "Makna tidak ditemukan"
+                if (currentPantun.isNotEmpty()) {
+                    navController.navigate(Screen.Meaning.createRoute(currentPantun, meaningResult))
+                }
+                meaningViewModel.resetState()
+            }
+
+            is ResultState.Error -> {
+                meaningButtonState = SSButtonState.FAILURE
+                errorMessage = result.errorMessage
+                meaningViewModel.resetState()
+            }
+
+            else -> {}
         }
     }
 
@@ -304,10 +323,49 @@ fun HistoryDetailScreen(
                                 HistoryDetailCard(data = historyData)
                             }
 
+                            item {
+                                Box(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    SSJetPackComposeProgressButton(
+                                        type = SSButtonType.CIRCLE,
+                                        width = 150.dp,
+                                        height = 48.dp,
+                                        buttonState = meaningButtonState,
+                                        onClick = {
+                                            historyData.pantunBatombe?.let { pantun ->
+                                                currentPantun = pantun
+                                                meaningViewModel.getMeaning(pantun)
+                                            }
+                                        },
+                                        cornerRadius = 100,
+                                        assetColor = whiteColor,
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = batombePrimary,
+                                            contentColor = whiteColor,
+                                            disabledContainerColor = batombePrimary,
+                                            disabledContentColor = whiteColor
+                                        ),
+                                        text = "Cari Arti"
+                                    )
+                                }
+                                Text(
+                                    text = "Cari arti pantun ini dalam Bahasa Indonesia",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = Color.Gray,
+                                    fontSize = 10.sp,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(top = 4.dp),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+
                             if (historyData.isPublic == false) {
                                 item {
                                     Spacer(modifier = Modifier.height(8.dp))
-                                    Box (
+                                    Box(
                                         modifier = Modifier.fillMaxWidth(),
                                         contentAlignment = Alignment.Center
                                     ) {
@@ -402,7 +460,6 @@ fun HistoryDetailScreen(
         }
     }
 }
-
 
 private fun handlePlayPause(
     audioPath: String,
