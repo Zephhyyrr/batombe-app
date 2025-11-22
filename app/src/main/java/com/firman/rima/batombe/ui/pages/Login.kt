@@ -3,6 +3,7 @@ package com.firman.rima.batombe.ui.pages
 import android.os.*
 import android.os.Looper
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,8 +55,7 @@ import com.firman.rima.batombe.ui.navigation.Screen
 import com.firman.rima.batombe.ui.theme.PoppinsSemiBold
 import com.firman.rima.batombe.ui.theme.UrVoiceTheme
 import com.firman.rima.batombe.ui.theme.batombePrimary
-import com.firman.rima.batombe.ui.theme.greyTextColor
-import com.firman.rima.batombe.ui.theme.textColor
+import com.firman.rima.batombe.ui.theme.batombeSecondary // Pastikan ini ada
 import com.firman.rima.batombe.ui.theme.whiteColor
 import com.firman.rima.batombe.ui.viewmodel.LoginViewModel
 import com.firman.rima.batombe.utils.ResultState
@@ -94,7 +94,7 @@ fun LoginItem() {
             style = TextStyle(
                 fontFamily = PoppinsSemiBold,
                 fontSize = 20.sp,
-                color = textColor,
+                color = batombePrimary,
                 textAlign = TextAlign.Center,
             )
         )
@@ -157,7 +157,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
             is ResultState.Error -> {
                 loginButtonState = SSButtonState.FAILURE
                 val errorMessage = (loginState as ResultState.Error).errorMessage
-                if (errorMessage.contains("500")) {
+                if (errorMessage.contains("404")) {
                     failedLoginDialog = true
                 } else {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
@@ -203,7 +203,11 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
         onDispose { compositeDisposable.clear() }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(batombeSecondary)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -219,21 +223,33 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                     email = it
                     emailSubject.onNext(it)
                 },
+                placeholder = {
+                    Text(
+                        stringResource(R.string.email_label),
+                        color = Color(0xFFBDBDBD)
+                    )
+                },
                 label = { Text(stringResource(R.string.email_label)) },
                 isError = emailError != null,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                shape = RoundedCornerShape(10.dp),
+                    .padding(bottom = 8.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE3F2FD),
-                    unfocusedContainerColor = Color(0xFFE3F2FD),
                     focusedBorderColor = batombePrimary,
-                    unfocusedBorderColor = Color.Transparent
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = batombePrimary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedLabelColor = batombePrimary,
+                    unfocusedLabelColor = Color.Gray
                 ),
                 textStyle = TextStyle(
-                    color = if (email.isNotEmpty()) textColor else greyTextColor
+                    color = batombePrimary,
+                    fontSize = 16.sp,
+                    fontFamily = PoppinsSemiBold
                 )
             )
 
@@ -254,22 +270,34 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
                     password = it
                     passwordSubject.onNext(it)
                 },
+                placeholder = {
+                    Text(
+                        stringResource(R.string.password_label),
+                        color = Color(0xFFBDBDBD)
+                    )
+                },
                 label = { Text(stringResource(R.string.password_label)) },
                 isError = passwordError != null,
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                shape = RoundedCornerShape(10.dp),
+                    .padding(bottom = 8.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE3F2FD),
-                    unfocusedContainerColor = Color(0xFFE3F2FD),
                     focusedBorderColor = batombePrimary,
-                    unfocusedBorderColor = Color.Transparent
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = batombePrimary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedLabelColor = batombePrimary,
+                    unfocusedLabelColor = Color.Gray
                 ),
                 textStyle = TextStyle(
-                    color = if (password.isNotEmpty()) textColor else greyTextColor
+                    color = batombePrimary,
+                    fontSize = 16.sp,
+                    fontFamily = PoppinsSemiBold
                 ),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -367,7 +395,7 @@ fun LoginScreen(navController: NavController, viewModel: LoginViewModel = hiltVi
             ) {
                 Text(
                     text = stringResource(R.string.register_link),
-                    color = textColor,
+                    color = batombePrimary,
                     fontFamily = PoppinsSemiBold,
                     style = TextStyle(fontSize = 14.sp)
                 )

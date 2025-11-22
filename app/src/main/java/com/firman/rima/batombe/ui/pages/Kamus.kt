@@ -321,7 +321,7 @@ fun KamusScreenContent(
                         } else {
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                                contentPadding = PaddingValues(start = 15.dp, end = 15.dp, bottom = 150.dp, top = 15.dp),
                             ) {
                                 items(kamusState.data) { item ->
                                     val isThisItemPlaying =

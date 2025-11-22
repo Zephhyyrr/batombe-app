@@ -3,6 +3,7 @@ package com.firman.rima.batombe.ui.pages
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,8 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ButtonDefaults
@@ -52,8 +55,7 @@ import com.firman.rima.batombe.ui.navigation.Screen
 import com.firman.rima.batombe.ui.theme.PoppinsSemiBold
 import com.firman.rima.batombe.ui.theme.UrVoiceTheme
 import com.firman.rima.batombe.ui.theme.batombePrimary
-import com.firman.rima.batombe.ui.theme.greyTextColor
-import com.firman.rima.batombe.ui.theme.textColor
+import com.firman.rima.batombe.ui.theme.batombeSecondary
 import com.firman.rima.batombe.ui.theme.whiteColor
 import com.firman.rima.batombe.ui.viewmodel.RegisterViewModel
 import com.firman.rima.batombe.utils.ResultState
@@ -146,7 +148,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 registerButtonState = SSButtonState.FAILURE
                 registerAttempted = true
                 val errorMessage = (registerState as ResultState.Error).errorMessage
-                if (errorMessage.contains("500")) {
+                if (errorMessage.contains("400")) {
                     failedRegisterDialog = true
                 } else {
                     Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
@@ -159,10 +161,8 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
     }
 
     DisposableEffect(Unit) {
-        val nameDisposable = emailSubject
-            .debounce(300, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { nameInput ->
+        val nameDisposable = emailSubject.debounce(300, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread()).subscribe { nameInput ->
                 if (registerAttempted) {
                     nameError = if (nameInput.isEmpty()) {
                         context.getString(R.string.name_empty_error)
@@ -174,10 +174,8 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 }
             }
 
-        val emailObservable = emailSubject
-            .debounce(300, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { emailInput ->
+        val emailObservable = emailSubject.debounce(300, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread()).subscribe { emailInput ->
                 if (registerAttempted) {
                     emailError = if (emailInput.isEmpty()) {
                         context.getString(R.string.email_empty_error)
@@ -188,10 +186,8 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                     }
                 }
             }
-        val passwordObservable = passwordSubject
-            .debounce(300, TimeUnit.MILLISECONDS)
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe { passwordInput ->
+        val passwordObservable = passwordSubject.debounce(300, TimeUnit.MILLISECONDS)
+            .observeOn(AndroidSchedulers.mainThread()).subscribe { passwordInput ->
                 if (registerAttempted) {
                     passwordError = if (passwordInput.isEmpty()) {
                         context.getString(R.string.password_empty_error)
@@ -211,12 +207,16 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
             compositeDisposable.clear()
         }
     }
-    Box (modifier = Modifier.fillMaxSize()){
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(batombeSecondary)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 15.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 15.dp), horizontalAlignment = Alignment.CenterHorizontally
         ) {
             RegisterItem()
             OutlinedTextField(
@@ -227,19 +227,23 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 },
                 label = { Text(stringResource(R.string.name_label)) },
                 isError = nameError != null,
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                shape = RoundedCornerShape(10.dp),
+                    .padding(bottom = 8.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE3F2FD),
-                    unfocusedContainerColor = Color(0xFFE3F2FD),
                     focusedBorderColor = batombePrimary,
-                    unfocusedBorderColor = Color.Transparent
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = batombePrimary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedLabelColor = batombePrimary,
+                    unfocusedLabelColor = Color.Gray
                 ),
                 textStyle = TextStyle(
-                    color = if (name.isNotEmpty()) textColor else greyTextColor
+                    color = batombePrimary, fontSize = 16.sp, fontFamily = PoppinsSemiBold
                 )
             )
 
@@ -265,16 +269,20 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                shape = RoundedCornerShape(10.dp),
+                    .padding(bottom = 8.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE3F2FD),
-                    unfocusedContainerColor = Color(0xFFE3F2FD),
                     focusedBorderColor = batombePrimary,
-                    unfocusedBorderColor = Color.Transparent
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = batombePrimary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedLabelColor = batombePrimary,
+                    unfocusedLabelColor = Color.Gray
                 ),
                 textStyle = TextStyle(
-                    color = if (email.isNotEmpty()) textColor else greyTextColor
+                    color = batombePrimary, fontSize = 16.sp, fontFamily = PoppinsSemiBold
                 )
             )
 
@@ -301,16 +309,20 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp),
-                shape = RoundedCornerShape(10.dp),
+                    .padding(bottom = 8.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp)),
+                shape = RoundedCornerShape(8.dp),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedContainerColor = Color(0xFFE3F2FD),
-                    unfocusedContainerColor = Color(0xFFE3F2FD),
                     focusedBorderColor = batombePrimary,
-                    unfocusedBorderColor = Color.Transparent
+                    unfocusedBorderColor = Color.Transparent,
+                    cursorColor = batombePrimary,
+                    focusedContainerColor = Color.White,
+                    unfocusedContainerColor = Color.White,
+                    focusedLabelColor = batombePrimary,
+                    unfocusedLabelColor = Color.Gray
                 ),
                 textStyle = TextStyle(
-                    color = if (password.isNotEmpty()) textColor else greyTextColor
+                    color = batombePrimary, fontSize = 16.sp, fontFamily = PoppinsSemiBold
                 ),
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
@@ -330,8 +342,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                             )
                         }
                     }
-                }
-            )
+                })
 
             if (passwordError != null) {
                 Text(
@@ -350,7 +361,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                 height = 50.dp,
                 cornerRadius = 10,
                 assetColor = whiteColor,
-                text =  stringResource(R.string.register_button),
+                text = stringResource(R.string.register_button),
                 textModifier = Modifier.padding(horizontal = 15.dp, vertical = 16.dp),
                 fontSize = 16.sp,
                 fontFamily = PoppinsSemiBold,
@@ -407,14 +418,13 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                     navController.navigate("login") {
                         popUpTo("register") { inclusive = true }
                     }
-                },
-                modifier = Modifier
+                }, modifier = Modifier
                     .padding(top = 24.dp)
                     .align(Alignment.CenterHorizontally)
             ) {
                 Text(
                     text = stringResource(R.string.login_link),
-                    color = textColor,
+                    color = batombePrimary,
                     fontFamily = PoppinsSemiBold,
                     style = TextStyle(fontSize = 14.sp)
                 )
@@ -436,8 +446,7 @@ fun RegisterScreen(navController: NavController, viewModel: RegisterViewModel = 
                     },
                     onDismiss = {
                         failedRegisterDialog = false
-                    }
-                )
+                    })
             }
         }
     }

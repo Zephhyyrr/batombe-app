@@ -104,7 +104,7 @@ fun GeneratePantunScreen(
         horizontalAlignment = Alignment.Start
     ) {
         Image(
-            painter = painterResource(id = R.drawable.logo_batombe_blue),
+            painter = painterResource(id = R.drawable.logo_batomve_1x1),
             contentDescription = "Logo Pantun Batombe",
             modifier = Modifier
                 .size(120.dp),
