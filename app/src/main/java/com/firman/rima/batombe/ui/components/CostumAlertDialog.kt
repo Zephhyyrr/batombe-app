@@ -65,7 +65,7 @@ fun CustomAlertDialog(
                     Text(
                         text = negativeText,
                         fontFamily = PoppinsSemiBold,
-                        color = primaryColor
+                        color = statusRedColor
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
@@ -73,7 +73,7 @@ fun CustomAlertDialog(
                     Text(
                         text = positiveText,
                         fontFamily = PoppinsSemiBold,
-                        color = primaryColor
+                        color = batombePrimary
                     )
                 }
             }
