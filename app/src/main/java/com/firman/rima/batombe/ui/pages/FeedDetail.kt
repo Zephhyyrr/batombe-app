@@ -310,7 +310,9 @@ fun FeedDetailScreen(
                                         cornerRadius = 100,
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = batombePrimary,
-                                            contentColor = Color.White
+                                            contentColor = whiteColor,
+                                            disabledContainerColor = batombePrimary,
+                                            disabledContentColor = whiteColor
                                         ),
                                         assetColor = Color.White,
                                         text = when (screenState.audioButtonState) {

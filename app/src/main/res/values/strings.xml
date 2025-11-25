@@ -10,7 +10,7 @@
     <string name="button_back">Back</string>
     <string name="button_next">Next</string>
     <string name="register_title">Register Here</string>
-    <string name="register_description">Create an account and start analyzing your English speaking skills.</string>
+    <string name="register_description">Create an account and start making your own Batombe.</string>
     <string name="login_title">Login Here</string>
     <string name="login_description">Welcome Back,\nPlease Log In</string>
     <string name="name_label">Name</string>
@@ -132,14 +132,17 @@
     <string name="sign_title">Let’s Boost Your English Speaking Confidence</string>
     <string name="sign_desc">Join now to practice your speaking skills and make English your strength!</string>
     <string name="link_article">Link Article</string>
+
+    <!-- Batombe Section (Translated) -->
     <string name="Ayo">batombe_1</string>
-    <string name="batombe_desc_1">Mulailah petualanganmu dengan batombe yang mencerminkan siapa dirimu.</string>
-    <string name="batombe_title_1">Ayo generate batombe pribadi kamu sesuai emosi dan tema yang diinginkan!</string>
-    <string name="batombe_title_2">Selamat Datang di Aplikasi GITA Batombe</string>
-    <string name="batombe_title_3">Apa itu Batombe?</string>
-    <string name="batombe_desc_2">GITA Batombe adalah aplikasi berbasis generative AI untuk menghasilkan pantun batombe sesuai dengan emosi dan tema yang di inginkan</string>
-    <string name="batombe_desc_3">Batombe adalah salah satu kekayaan sastra lisan dari Nagari Abai, Solok Selatan, Sumatera Barat. Inti dari tradisi ini adalah pertunjukan berbalas pantun antara dua kelompok atau lebih.</string>
-    <string name="pantun_text_title">Pantun Batombe</string>
-    <string name="menu_feed_title">Postingan</string>
+    <string name="batombe_desc_1">Begin your journey with a batombe that reflects who you are.</string>
+    <string name="batombe_title_1">Generate your own personalized batombe based on the emotion and theme you want!</string>
+    <string name="batombe_title_2">Welcome to the Rima Batombe App</string>
+    <string name="batombe_title_3">What is Batombe?</string>
+    <string name="batombe_desc_2">Rima Batombe is a generative AI–powered application that creates batombe rhymes based on your preferred emotion and theme.</string>
+    <string name="batombe_desc_3">Batombe is a traditional oral literature from Nagari Abai, South Solok, West Sumatra. At its core, this tradition is a poetic exchange performance between two or more groups.</string>
+
+    <string name="pantun_text_title">Batombe Poem</string>
+    <string name="menu_feed_title">Posts</string>
     <string name="nodata_feed_title">No Data</string>
 </resources>
