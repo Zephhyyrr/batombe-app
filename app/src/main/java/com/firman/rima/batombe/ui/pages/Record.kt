@@ -102,7 +102,7 @@ fun RecordScreen(
 
         try {
             backgroundMusicPlayer.reset()
-            val descriptor = context.resources.openRawResourceFd(R.raw.music_latar)
+            val descriptor = context.resources.openRawResourceFd(R.raw.audio_batombe)
             backgroundMusicPlayer.setDataSource(descriptor.fileDescriptor, descriptor.startOffset, descriptor.length)
             descriptor.close()
             backgroundMusicPlayer.prepare()
