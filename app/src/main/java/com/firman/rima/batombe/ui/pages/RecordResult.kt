@@ -117,11 +117,10 @@ fun RecordResultScreen(
                 contentAlignment = Alignment.CenterStart
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.iv_logo_batombe_2),
+                    painter = painterResource(id = R.drawable.logo_batomve_1x1),
                     contentDescription = "Pantun Batombe Logo",
                     modifier = Modifier
-                        .height(92.dp)
-                        .width(210.dp)
+                        .size(120.dp)
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "356643992590",
+    "project_id": "rima-batombe",
+    "storage_bucket": "rima-batombe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:356643992590:android:dbb0357ef10d23d31db85f",
+        "android_client_info": {
+          "package_name": "com.firman.rima.batombe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyMitlng3Xe9--6_vOxQ3U_IRRXvgVioY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
