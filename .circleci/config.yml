@@ -3,7 +3,7 @@ version: 2.1
 jobs:
   build-and-deploy:
     docker:
-      # Menggunakan image terbaru (Android 15 ready)
+      # Menggunakan image terbaru (Support SDK 35 & Java 17/21)
       - image: cimg/android:2024.10.1
 
     environment:
@@ -23,7 +23,7 @@ jobs:
           command: |
             curl -sL https://firebase.tools | bash
 
-      # 3. BUILD DEBUG (PENTING: JANGAN GANTI JADI RELEASE)
+      # 3. BUILD DEBUG
       # Kita pakai debug agar otomatis ditandatangani oleh debug keystore bawaan
       - run:
           name: Build Debug APK
@@ -32,7 +32,6 @@ jobs:
             ./gradlew assembleDebug
 
       # 4. Upload Otomatis (Script Pencari File)
-      # Script ini akan mencari file .apk apapun yang dihasilkan langkah 3
       - run:
           name: Upload to Firebase App Distribution
           command: |
@@ -41,12 +40,10 @@ jobs:
             echo "Sedang mencari file APK..."
             
             # Cari file .apk di dalam folder outputs/apk/debug
-            # -name "*.apk" artinya cari file apa saja yang belakangnya .apk
             APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
             
             if [ -z "$APK_PATH" ]; then
               echo "GAWAT: File APK tidak ditemukan. Cek langkah build di atas."
-              # Tampilkan isi folder untuk debugging
               ls -R app/build/outputs/apk/
               exit 1
             fi
@@ -67,7 +64,20 @@ workflows:
   version: 2
   release-workflow:
     jobs:
+      # --- LANGKAH 1: MENUNGGU PERSETUJUAN (MANUAL) ---
+      # Saat push ke production, CircleCI akan PAUSE di sini (Warna Ungu).
+      # Kamu harus buka dashboard CircleCI dan klik "Approve" untuk lanjut.
+      - hold-for-approval:
+          type: approval
+          filters:
+            branches:
+              only: production
+
+      # --- LANGKAH 2: EKSEKUSI (BUILD & DEPLOY) ---
+      # Job ini baru jalan SETELAH kamu klik approve di atas.
       - build-and-deploy:
+          requires:
+            - hold-for-approval
           filters:
             branches:
               only: production
