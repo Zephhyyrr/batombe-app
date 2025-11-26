@@ -3,16 +3,16 @@ version: 2.1
 jobs:
   build-and-deploy:
     docker:
-      # UPDATE: Menggunakan image yang lebih baru agar support SDK 35 & Java 17/21
+      # Menggunakan image terbaru (Android 15 ready)
       - image: cimg/android:2024.10.1
 
     environment:
-      JVM_OPTS: -Xmx4096m # Naikkan sedikit memory agar build lebih stabil
+      JVM_OPTS: -Xmx4096m
 
     steps:
       - checkout
 
-      # 1. Decode Kunci JSON
+      # 1. Decode Kunci
       - run:
           name: Decode Firebase Credentials
           command: echo $FIREBASE_KEY_BASE64 | base64 -d > firebase-key.json
@@ -23,39 +23,42 @@ jobs:
           command: |
             curl -sL https://firebase.tools | bash
 
-      # 3. Build APK (SAYA UBAH KE DEBUG)
-      # Alasan: Build 'Release' membutuhkan pengaturan Keystore (Tanda tangan digital).
-      # Jika belum ada Keystore, gunakan 'Debug' dulu agar APK bisa diinstal di HP.
+      # 3. BUILD DEBUG (PENTING: JANGAN GANTI JADI RELEASE)
+      # Kita pakai debug agar otomatis ditandatangani oleh debug keystore bawaan
       - run:
           name: Build Debug APK
           command: |
             chmod +x ./gradlew
             ./gradlew assembleDebug
 
-      # 4. Upload ke Firebase (MENGGUNAKAN PENCARIAN OTOMATIS)
-      # Script ini akan mencari file .apk dimanapun dia berada di folder build
+      # 4. Upload Otomatis (Script Pencari File)
+      # Script ini akan mencari file .apk apapun yang dihasilkan langkah 3
       - run:
           name: Upload to Firebase App Distribution
           command: |
             export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/firebase-key.json"
             
-            echo "Mencari file APK..."
-            # Cari file berakhiran .apk di folder outputs, ambil yang pertama ketemu
-            APK_PATH=$(find app/build/outputs/apk -name "*.apk" | head -n 1)
+            echo "Sedang mencari file APK..."
+            
+            # Cari file .apk di dalam folder outputs/apk/debug
+            # -name "*.apk" artinya cari file apa saja yang belakangnya .apk
+            APK_PATH=$(find app/build/outputs/apk/debug -name "*.apk" | head -n 1)
             
             if [ -z "$APK_PATH" ]; then
-              echo "ERROR: File APK tidak ditemukan! Build mungkin gagal."
+              echo "GAWAT: File APK tidak ditemukan. Cek langkah build di atas."
+              # Tampilkan isi folder untuk debugging
+              ls -R app/build/outputs/apk/
               exit 1
             fi
             
-            echo "Mengupload file: $APK_PATH"
+            echo "Ditemukan APK di: $APK_PATH"
             
             firebase appdistribution:distribute "$APK_PATH" \
               --app "1:356643992590:android:dbb0357ef10d23d31db85f" \
               --groups "Tester-Batombe" \
-              --release-notes "New release from CircleCI build #${CIRCLE_BUILD_NUM}"
+              --release-notes "Debug release from CircleCI build #${CIRCLE_BUILD_NUM}"
 
-      # 5. Simpan Artifact (Agar bisa didownload dari dashboard CircleCI)
+      # 5. Simpan Artifact
       - store_artifacts:
           path: app/build/outputs/apk/debug/
           destination: apk-debug
@@ -67,6 +70,4 @@ workflows:
       - build-and-deploy:
           filters:
             branches:
-              # Pastikan kamu push ke branch ini
-              only: production
               only: production
