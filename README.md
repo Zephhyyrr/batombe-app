@@ -1,1 +1,2 @@
 # Rima Batombe - Budaya Go 2025
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/Zephhyyrr/batombe-app/tree/main.svg?style=svg)](https://dl.circleci.com/status-badge/redirect/gh/Zephhyyrr/batombe-app/tree/main)
