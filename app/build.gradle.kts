@@ -46,6 +46,9 @@ android {
         compose = true
         buildConfig = true
     }
+    lint {
+        disable.add("NullSafeMutableLiveData")
+    }
 }
 
 subprojects {
@@ -152,6 +155,4 @@ dependencies {
     // Firebase
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
-    implementation(libs.firebase.appdistribution)
-
 }
