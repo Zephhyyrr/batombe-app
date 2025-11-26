@@ -37,7 +37,7 @@ jobs:
           command: |
             export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/firebase-key.json"
             
-            firebase appdistribution:distribute app/build/outputs/apk/release/app-release.apk \
+            firebase appdistribution:distribute app/build/outputs/apk/debug/app-debug.apk \
               --app "1:356643992590:android:dbb0357ef10d23d31db85f" \
               --groups "Tester-Batombe" \
               --release-notes "New release from CircleCI build #${CIRCLE_BUILD_NUM}"
